@@ -2,16 +2,27 @@
 	background-color: rgb(112,143,153);
 	float: left;
 	width: 100%;
-	 padding: 10px;
+	padding: 10px;
 }
 #div2{
 	background-color: rgb(138,43,226); 
 	float:left;
+	font-color: white;
 	width: 100%;
 }
 #div3{
 	background-color: rgb(230,197,13);
 	float: left;
 	width: 100%;
-
+	padding-bottom: 10px;
+}
+#div4{
+	background-color: black;
+	float: left;
+	width: 55%;
+	height: 100%;
+	margin-left: 5px;
+	margin-bottom: 15px;
+	color: aliceblue;
+	padding: 5px;
 }
