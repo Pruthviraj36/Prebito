@@ -16,6 +16,7 @@
                 width: 10%;
             }
             .linker{
+                text-decoration: none;
                 font-size: 1.8em;
                 text-align: center;
                 float: right; 
@@ -24,7 +25,7 @@
 
             }
             .mainContent{
-                height: 600px;
+                height: 585px;
                 width: 100%;
             }
             .centered{
@@ -36,29 +37,25 @@
                 font-size: 2.5em;
             }
             .li{
-                font-size: 1.1em;
+                font-size: .8em;
             }
-            .border {
-
-            	border: solid;
-            	border-color: red;
-            	vertical-align: center;
-            	text-align: center;
-            	height: 181px;
-            	margin: 40px;
-            	width: 260px;
+            .borderer{
+                margin-top: 30px;
+                vertical-align: top;
+                text-align: center;
+                border: solid;
+                height: 180px;
+                width: 350px;
+                border-color: red;
             }
             .left{
-            	float: left;
-            	padding: 42px;
-            	margin-left: 65px;
+                float: left;
+                margin-left: 97px; 
             }
             .right{
-            	float: right;
-            	padding: 42px;
-            	margin-right: 65px;
+                float: right;
+                margin-right: 97px;
             }
-
         </style>
     </head>
     <body>
@@ -66,11 +63,11 @@
             <div class="logo">
                 <img class="image" src="https://darshan.ac.in/Content/media/DU_Logo.svg">
 
-                <div class="linker">Contact</div>
-                <div class="linker">My Work</div>
-                <div class="linker">Services</div>
-                <div class="linker">About</div>
-                <div class="linker">Home</div>
+                <div class="linker"><a href="https://darshan.ac.in/contact-us">Contact</a></div>
+                <div class="linker"><a href="https://admission.darshan.ac.in/">My Work</a></div>
+                <div class="linker"><a href="https://darshanalumni.in/">Alumini</a></div>
+                <div class="linker"><a href="https://darshanalumni.in/Alumni/About-Us">About</a></div>
+                <div class="linker"><a href="https://darshan.ac.in/">Home</a></div>
 
             </div>
             <div>
@@ -80,11 +77,10 @@
                 <p class="li">I use HTML and CSS to convert webpage design into beautibul and efficient<br>Website</p>
             </div>
             <div class="program">
-            	<div class="border left"> Program 1</div>
-            	<div class="border left"> Program 2</div>
-            	<div class="border right"> Program 4</div>
-            	<div class="border right"> Program 3</div>
-            	
+                <div class="borderer left">Program 1</div>
+                <div class="borderer left">Program 2</div>
+                <div class="borderer right">Program 3</div>
+                <div class="borderer right">Program 4</div>
             </div>
         </div>
     </body>
