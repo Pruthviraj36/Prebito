@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FREE FIRE Registration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .form-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-container label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .form-container input[type="text"],
+        .form-container select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .form-container input[type="submit"] {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .form-container input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2 style="text-align: center;">Free Fire</h2>
+        <form id="userForm">
+            <label for="uid">User ID:</label>
+            <input type="text" id="uid" name="uid" required>
+
+            <label for="level">Level:</label>
+            <input type="text" id="level" name="level" placeholder="Enter Level (up to 100)" required>
+
+            <input type="submit" value="Submit">
+        </form>
+    </div>
+
+    <!-- JavaScript code to handle form submission and validate level input -->
+    <script>
+        document.getElementById('userForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent the default form submission
+
+            // Get user input values
+            var uid = document.getElementById('uid').value;
+            var level = parseInt(document.getElementById('level').value);
+
+            // Validate level input
+            if (isNaN(level) || level < 0 || level > 100) {
+                alert('Please enter a valid level between 0 and 100.');
+                return;
+            }
+
+            // Display the user input values (you can handle them as per your requirements)
+            console.log("User ID:", uid);
+            console.log("Level:", level);
+
+            // You can perform further actions like sending the data to the server or manipulating the UI.
+        });
+    </script>
+</body>
+</html>
