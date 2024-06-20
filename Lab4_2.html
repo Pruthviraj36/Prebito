@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <button onclick="pop()">pop</button>
+    <button onclick="push()">push</button>
+    <button onclick="shift()">shift</button>
+    <button onclick="unshift()">unshift</button>
+    <script>
+        let input = prompt("Enter a list of items separated by commas:"); 
+        let array = input.split(","); 
+        document.write(array);
+        function pop(){
+            document.write(array.pop);
+        }
+        function ppushop(){
+            document.write(array.push);
+        }
+        function shift(){
+            document.write(array.shift);
+        }
+        function unshift(){
+            document.write(array.unshift);
+        }
+    </script>
+</body>
+</html>
