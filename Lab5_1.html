@@ -1,48 +1,109 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Calculator</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" />
 </head>
+
 <body class="bg-primary-subtle text-primary-emphasis">
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-4 calculator m-5">
                 <div class="row">
-                    <input type="text" id="display" class="form-control col-9" readonly>
+                    <input type="text" id="display" class="form-control col-9" readonly />
                 </div>
                 <div class="row">
-                    <button class="btn btn-secondary col-2 m-1" id="clear">C</button>
-                    <button class="btn btn-secondary col-2 m-1" id="backspace">←</button>
-                    <button class="btn btn-secondary col-2 m-1" id="divide">÷</button>
-                    <button class="btn btn-secondary col-2 m-1" id="multiply">×</button>
+                    <button class="btn btn-danger col-2 m-1" id="clear" onclick="display()">
+                        C
+                    </button>
+                    <button class="btn btn-danger col-2 m-1" id="backspace" onclick="display('←')">
+                        ←
+                    </button>
+                    <button class="btn btn-success col-2 m-1" id="divide" onclick="display('÷')">
+                        ÷
+                    </button>
+                    <button class="btn btn-success col-2 m-1" id="multiply" onclick="display('*')">
+                        *
+                    </button>
                 </div>
                 <div class="row">
-                    <button class="btn btn-secondary col-2 m-1" id="7">7</button>
-                    <button class="btn btn-secondary col-2 m-1" id="8">8</button>
-                    <button class="btn btn-secondary col-2 m-1" id="9">9</button>
-                    <button class="btn btn-secondary col-2 m-1" id="subtract">-</button>
+                    <button class="btn btn-primary col-2 m-1" id="7" onclick="display('7')">
+                        7
+                    </button>
+                    <button class="btn btn-primary col-2 m-1" id="8" onclick="display('8')">
+                        8
+                    </button>
+                    <button class="btn btn-primary col-2 m-1" id="9" onclick="display('9')">
+                        9
+                    </button>
+                    <button class="btn btn-success col-2 m-1" id="subtract" onclick="display('-')">
+                        -
+                    </button>
                 </div>
                 <div class="row">
-                    <button class="btn btn-secondary col-2 m-1" id="4">4</button>
-                    <button class="btn btn-secondary col-2 m-1" id="5">5</button>
-                    <button class="btn btn-secondary col-2 m-1" id="6">6</button>
-                    <button class="btn btn-secondary col-2 m-1" id="add">+</button>
+                    <button class="btn btn-primary col-2 m-1" id="4" onclick="display('4')">
+                        4
+                    </button>
+                    <button class="btn btn-primary col-2 m-1" id="5" onclick="display('5')">
+                        5
+                    </button>
+                    <button class="btn btn-primary col-2 m-1" id="6" onclick="display('6')">
+                        6
+                    </button>
+                    <button class="btn btn-success col-2 m-1" id="add" onclick="display('+')">
+                        +
+                    </button>
                 </div>
                 <div class="row">
-                    <button class="btn btn-secondary col-2 m-1" id="1">1</button>
-                    <button class="btn btn-secondary col-2 m-1" id="2">2</button>
-                    <button class="btn btn-secondary col-2 m-1" id="3">3</button>
-                    <button class="btn btn-secondary col-2 m-1" id="equals">=</button>
+                    <button class="btn btn-primary col-2 m-1" id="1" onclick="display('1')">
+                        1
+                    </button>
+                    <button class="btn btn-primary col-2 m-1" id="2" onclick="display('2')">
+                        2
+                    </button>
+                    <button class="btn btn-primary col-2 m-1" id="3" onclick="display('3')">
+                        3
+                    </button>
+                    <button class="btn btn-outline-dark col-2 m-1" id="equals" onclick="display('=')">
+                        =
+                    </button>
                 </div>
                 <div class="row">
-                    <button class="btn btn-secondary col-2 m-1" id="0">0</button>
-                    <button class="btn btn-secondary col-2 m-1" id="decimal">.</button>
+                    <button class="btn btn-primary col-2 m-1" id="0" onclick="display('0')">
+                        0
+                    </button>
+                    <button class="btn btn-primary col-2 m-1" id="decimal" onclick="display('.')">
+                        .
+                    </button>
                 </div>
             </div>
         </div>
     </div>
+
+    <script>
+        function display(a) {
+            const displayInput = document.getElementById("display");
+            const currentValue = displayInput.value;
+
+            if (a === "=") {
+                try {
+                    const result = eval(currentValue);
+                    displayInput.value = result;
+                } catch (error) {
+                    displayInput.value = "Error";
+                }
+            } else if (a === "C") {
+                displayInput.value = "";
+            } else if (a === "←") {
+                displayInput.value = currentValue.slice(0, -1);
+            } else {
+                displayInput.value += a;
+            }
+        }
+    </script>
 </body>
+
 </html>
