@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
+    <style>
+        button{
+            margin: 12px;
+        }
+    
+    </style>
+
+
+</head>
+
+
+<body>
+    <form class="form" style="margin-top: 100px; margin-left: 100px; width: 50%;">
+        <div class="row">
+            <div class="col-6">
+                <input class="form-control" type="text" id="name" placeholder="enter your name"> 
+                <button type="button" class="btn btn-outline-warning" onclick="checkName()">Check</button>
+            </div>
+
+        </div>
+       <div class="row">
+            <div class="col-6">
+                <input class="form-control" type="password"  id="pass" placeholder="password"> 
+        <button type="button" class="btn btn-outline-warning" onclick="checkPassword()">Check</button>
+            </div>
+        </div>
+        
+        <br><br>
+        <div class="row">
+            <div class="col-6">
+                <input class="form-control" type="password" id="respass" placeholder="repassword"> 
+        <button type="button" class="btn btn-outline-warning" onclick="checkres()">Check</button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-6">
+                <input class="form-control" type="number" id="mobile" placeholder="mobile number">  
+                <button type="button" class="btn btn-outline-warning" onclick="checkMobile()">Check</button>
+            </div>
+        </div>
+       <div class="row">
+        <div class="col-6">
+            <input class="form-control" type="date" id="age" placeholder="age"> 
+            <button type="button" class="btn btn-outline-warning" onclick="checkAge()">Check</button>
+            <br><br><br>
+        </div>
+       </div>
+        
+    </form>
+    <script>
+        function checkName() {
+            let name = document.getElementById("name").value;
+            let pattern = /^[a-zA-Z]+$/;
+
+            if (pattern.test(name)) {
+                alert("Valid");
+            } else {
+                alert("Invalid");
+            }
+        }
+
+        function checkPassword() {
+            let password = document.getElementById("pass").value;
+            let pattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@.#$!%*?&])[A-Za-z\d@.#$!%*?&]{8,18}$/;
+
+            if (pattern.test(password)) {
+                alert("Valid");
+            } else {
+                alert("Invalid");
+            }
+        }
+
+        function checkMobile() {
+            let mobile = document.getElementById("mobile").value;
+            let pattern = /^[0-9]{10}$/;
+
+            if (pattern.test(mobile)) {
+                alert("Valid");
+            } else {
+                alert("Invalid");
+            }
+        }
+        function checkAge(){
+
+            let Age = new Date(document.getElementById('age').value).getFullYear();
+
+            let date = new Date();
+            let year = date.getFullYear();
+            console.log(year);
+
+            if((year - Age)>18){
+                alert("aav to re bhura!!!!!!!!!!!!!!");
+            }
+            else{
+                alert("ae bhura gher bhego tha")
+            }
+
+        }
+        function checkres() {
+            if ((document.getElementById("pass").value) == (document.getElementById("respass").value)) {
+                alert("vaild");
+            } else {
+                alert("invalid")
+            }
+        }
+    </script>
+</body>
+
+</html>
