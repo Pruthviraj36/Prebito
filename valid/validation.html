@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <form class="form" style="margin-top: 100px; margin-left: 40px; width: 50%;">
+
+        <!-- username -->
+
+        <input type="text" class="form-control" id="name" placeholder="enter your name"> 
+        <button type="button" class="btn btn-outline-warning" onclick="checkName()">Check</button>
+        <br><br>
+
+        <!-- password -->
+
+        <input class="form-control" type="password"  id="pass" placeholder="password"> 
+        <button type="button" class="btn btn-outline-warning" onclick="checkPassword()">Check</button>
+        <br><br>
+
+        <!-- reEnter password -->
+
+        <input class="form-control" type="password" id="respass" placeholder="reenterpassword"> 
+        <button type="button" class="btn btn-outline-warning" onclick="checkres()">Check</button>
+        <br><br>
+
+        <!-- mobile number -->
+
+        <input class="form-control" type="number" id="mobile" placeholder="mobile number">  
+        <button type="button" class="btn btn-outline-warning" onclick="checkMobile()">Check</button>
+        <br><br>
+
+        <!-- age -->
+
+        <input class="form-control" type="date" id="age" placeholder="birth date"> 
+        <button type="button" class="btn btn-outline-warning" onclick="checkAge()">Check</button>
+        <br><br>
+
+        <!-- dummyText -->
+
+        <input type="text" class="form-control" id="dummyText">
+    </form>
+    <script>
+        function checkName() {
+            let name = document.getElementById("name").value;
+            let pattern = /^[a-zA-Z]+$/;
+
+            if (pattern.test(name)) {
+                alert("Valid");
+            } else {
+                alert("Invalid");
+            }
+        }
+
+        function checkPassword() {
+            let password = document.getElementById("pass").value;
+            let pattern ="(?=^.{8,}$)((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$";
+
+            if (pattern.test(password)) {
+                alert("Valid");
+            } else {
+                alert("Invalid");
+            }
+        }
+
+        function checkMobile() {
+            let mobile = document.getElementById("mobile").value;
+            let pattern = /^[0-9]{10}$/;
+
+            if (pattern.test(mobile)) {
+                alert("Valid");
+            } else {
+                alert("Invalid");
+            }
+        }
+
+        function checkres() {
+            if ((document.getElementById("pass").value) == (document.getElementById("respass").value)) {
+                alert("vaild");
+            } else {
+                alert("invalid")
+            }
+        }
+        str = document.getElementById('age').value
+        const currentDate = new Date();
+        const birthDate = new Date(str);
+        console.log(birthDate);
+
+        const currentYear = currentDate.getFullYear();
+        const birthYear = birthDate.getFullYear();
+
+        function checkAge() {
+            if((currentYear - birthYear) >= 18) {
+                alert("valid");
+            }
+            else {
+                // alert("invalid");
+                alert("Age must be greater than 18 years");
+                document.getElementById('dummyText').value = "your age is "+ (currentYear-birthYear);
+            }
+        }
+    </script>
+</body>
+
+</html>
