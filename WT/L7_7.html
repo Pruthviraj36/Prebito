@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <input type="text" name="" id="num1">
+    <input type="text" name="" id="num2">
+    <input type="text" name="" id="result">
+    <button onclick="sum()">Calculate</button>
+    <script>
+        let sum = ()=>{
+            let num1 = parseFloat(document.getElementById("num1").value);
+            let num2 = parseFloat(document.getElementById("num2").value);
+            document.getElementById('result').value = num1 + num2;
+        }
+    </script>
+</body>
+</html>

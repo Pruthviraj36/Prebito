@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        console.log("For Object \n");
+        student1 = {
+			name: 'Pruthviraj',
+			age: 18,
+			spi: 9.5,
+            sem: 3,
+            branch: 'CSE',
+            rollno: 220,
+            marks: [90, 80, 70, 60, 50],
+ 		}
+
+        let {name, age, spi} = student1;
+        console.log(name, age, spi);
+
+        console.log("For Array \n\n");
+
+        marks = [90, 80, 70, 60, 50];
+
+        let [fi, se, thi, fou, fif] = marks;
+        console.log(fi, se, thi, fou, fif);
+    </script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+	<script type="text/javascript">
+		a=10;
+		console.log("outside function = ", a)
+		sum = ()=>{
+			var a=20;
+			console.log("inside function = ", a)
+			{
+				let a=30
+				console.log("inside block = ", a)
+			}
+		}
+		sum();
+	</script>
+</body>
+</html>

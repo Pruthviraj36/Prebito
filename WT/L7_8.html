@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JavaScript Class Example</title>
+</head>
+<body>
+    <h1>JavaScript Class Example</h1>
+    <button onclick="createCar()">Create a new car</button>
+    <button onclick="driveCar()">Drive the car</button>
+    <button onclick="describeCar()">Describe the car</button>
+
+    <div id="output"></div>
+
+    <script>
+        class Car {
+            constructor(make, model, year) {
+                this.make = make;
+                this.model = model;
+                this.year = year;
+                this.miles = 0;
+            }
+
+            drive(miles) {
+                this.miles += miles;
+                console.log(`You drove ${miles} miles. The new miles is ${this.miles} miles.`);
+            }
+
+            describeCar() {
+                document.getElementById('output').innerHTML = `<h2>This car is a ${this.year} ${this.make} ${this.model} with ${this.miles} miles.</h2>`;
+                console.log(`This car is a ${this.year} ${this.make} ${this.model} with ${this.miles} miles.`);
+            }
+        }
+
+        // class over
+
+        let myCar;
+
+        function createCar() {
+            myCar = new Car("Rolls Royce", "Boat Tail", 1980);
+            document.getElementById("output").innerHTML = "Car created!";
+        }
+
+        function driveCar() {
+            if (myCar) {
+                myCar.drive(100);
+                document.getElementById("output").innerHTML = "You drove 100 miles.";
+            } else {
+                document.getElementById("output").innerHTML = "No car created yet!";
+            }
+        }
+
+        function describeCar() {
+            if (myCar) {
+                myCar.describeCar();
+            } else {
+                document.getElementById("output").innerHTML = "No car created yet!";
+            }
+        }
+    </script>
+</body>
+</html>

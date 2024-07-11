@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+	<input type="text" name="" id="demo" /> 
+	<script type="text/javascript">
+		function myDisplay(sums) {
+		  	document.getElementById("demo").value = sums;
+		}
+
+		function myCalculator(num1, num2, myCallback) {
+		  	let sum = num1 + num2;
+		  	myCallback(sum);
+		}
+
+		myCalculator(5, 5, myDisplay);
+	</script>
+</body>
+</html>
