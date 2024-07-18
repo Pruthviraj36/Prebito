@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mouse Events</title>
+    <style>
+        body {
+            text-align: center;
+            padding: 50px;
+        }
+        h2 {
+            color: black;
+            transition: color 0.3s;
+            cursor: pointer;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h2 id="heading" onmouseover="changeColor('yellow')" onmouseout="changeColor('black')">Mouse over me!</h2>
+
+    <button onclick="showDateTime()">Find Time</button>
+
+    <script>
+        function changeColor(color) {
+            document.getElementById('heading').style.color = color;
+        }
+
+        function showDateTime() {
+            let dateTime = new Date().toLocaleString();
+            // alert("Current Date and Time: " + dateTime);
+            Swal.fire({
+                title: "Time" + dateTime,
+                width: 600,
+                padding: "3em",
+                color: "#ffffff ",
+                background: "#fff url(https://media.istockphoto.com/id/1464561797/photo/artificial-intelligence-processor-unit-powerful-quantum-ai-component-on-pcb-motherboard-with.webp?b=1&s=170667a&w=0&k=20&c=AeBEFdsaJZmhbPHGocUkCutsQuR2rt828Aa8bDHyiOo=)",
+                backdrop: `
+                    rgba(0,0,123,0.4)
+                    url("https://media1.tenor.com/m/2roX3uxz_68AAAAC/cat-space.gif")
+                    left top
+                    no-repeat
+                `
+            });
+        }
+        
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</body>
+</html>
