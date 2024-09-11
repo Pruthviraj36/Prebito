@@ -20,52 +20,33 @@ public class BST {
             root = new Node(value);
             return root;
         }
-        if (value < root.data) {
-            root.left = insertIntoBST(root.left, value);
-        } else if (value > root.data) {
-            root.right = insertIntoBST(root.right, value);
-        }
+        if (value < root.data) root.left = insertIntoBST(root.left, value);
+        else if (value > root.data) root.right = insertIntoBST(root.right, value);
         return root;
     }
 
     // Search method for BST
     public static boolean searchInBST(Node root, int value) {
-        if (root == null) {
-            return false;
-        }
-        if (root.data == value) {
-            return true;
-        }
-        if (value < root.data) {
-            return searchInBST(root.left, value);
-        } else {
-            return searchInBST(root.right, value);
-        }
+        if (root == null) return false;
+        else if (root.data == value) return true;
+        else if (value < root.data) return searchInBST(root.left, value);
+        else return searchInBST(root.right, value);
     }
 
     // Delete method for BST
     public static Node deleteFromBST(Node root, int value) {
-        if (root == null) {
-            return root;
-        }
-        if (value < root.data) {
-            root.left = deleteFromBST(root.left, value);
-        } else if (value > root.data) {
-            root.right = deleteFromBST(root.right, value);
-        } else {
+        if (root == null) return root;
+        else if (value < root.data) root.left = deleteFromBST(root.left, value);
+        else if (value > root.data) root.right = deleteFromBST(root.right, value); 
+        else {
             // Node to be deleted found
 
             // Case 1: No child
-            if (root.left == null && root.right == null) {
-                return null;
-            }
+            if (root.left == null && root.right == null) return null;
 
             // Case 2: One child
-            if (root.left == null) {
-                return root.right;
-            } else if (root.right == null) {
-                return root.left;
-            }
+            if (root.left == null) return root.right;
+            else if (root.right == null) return root.left;
 
             // Case 3: Two children
             Node inorderSuccessor = findMin(root.right);
@@ -85,9 +66,7 @@ public class BST {
 
     // Preorder traversal
     public static void preorderTraversal(Node node) {
-        if (node == null) {
-            return;
-        }
+        if (node == null) return;
         System.out.print(node.data + " ");
         preorderTraversal(node.left);
         preorderTraversal(node.right);
