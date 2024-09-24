@@ -1,7 +1,7 @@
 import java.util.*;
 
 class Graph {
-    private Map<Integer, List<Integer>> adjList;
+    Map<Integer, List<Integer>> adjList;
 
     public Graph() {
         adjList = new HashMap<>();
@@ -68,6 +68,9 @@ public class L_16 {
         for (int i = 0; i < n; i++) {
             int u = sc.nextInt();
             int v = sc.nextInt();
+
+            System.out.println("Enter next pair");
+            
             if (u != v) {  // Prevent self-loops
                 g.addEdge(u, v);
             } else {
@@ -79,6 +82,9 @@ public class L_16 {
 
         System.out.print("What do you want to do BFS[B]/DFS[D]? ");
         char choice = sc.next().charAt(0);
+        if (choice != 'B' || choice != 'b' || choice != 'D' || choice != 'd') {
+            System.out.println("Invalid choice! Please enter B for BFS or D for DFS.");
+        }
 
         System.out.print("Enter starting vertex: ");
         int start = sc.nextInt();
