@@ -73,9 +73,84 @@ class extralayout2 extends StatelessWidget {
               ))
             ],
           )),
-          Expanded(child: Container(
-            color: Colors.red,
-          ))
+         Expanded(child: Row(
+           children: [
+             Expanded(child: Column(
+               children: [
+                 Expanded(child: Row(
+                   children: [
+                     Expanded(child:Container(
+                       color: Colors.blue,
+                     )),
+                     Expanded(child: Column(
+                       children: [
+                         Expanded(child: Row(
+                           children: [
+                             Expanded(child: Container(color: Colors.yellow,)),
+                             Expanded(child: Container(color: Colors.purple,))
+                           ],
+                         )),
+                         Expanded(child: Row(
+                           children: [
+                             Expanded(child: Container(color: Colors.green,)),
+                             Expanded(child: Container(color: Colors.pink,))
+                           ],
+                         ))
+                       ],
+                     ))
+                   ],
+                 )),
+                 Expanded(child: Row(children: [
+                   Expanded(child: Container(
+                     color: Colors.pink,
+                   )),
+                   Expanded(child: Container(
+                     color: Colors.orange,
+                   ))
+                 ],))
+               ],
+             )),
+             Expanded(child: Container(
+               color:
+               Colors.blue[100],
+             )),
+             Expanded(child: Column(
+               children: [
+                 Expanded(child: Row(
+                   children: [
+                     Expanded(child:Container(
+                       color: Colors.blue,
+                     )),
+                     Expanded(child: Column(
+                       children: [
+                         Expanded(child: Row(
+                           children: [
+                             Expanded(child: Container(color: Colors.yellow,)),
+                             Expanded(child: Container(color: Colors.purple,))
+                           ],
+                         )),
+                         Expanded(child: Row(
+                           children: [
+                             Expanded(child: Container(color: Colors.green,)),
+                             Expanded(child: Container(color: Colors.grey,))
+                           ],
+                         ))
+                       ],
+                     ))
+                   ],
+                 )),
+                 Expanded(child: Row(children: [
+                   Expanded(child: Container(
+                     color: Colors.pink,
+                   )),
+                   Expanded(child: Container(
+                     color: Colors.orange,
+                   ))
+                 ],))
+               ],
+             )),
+           ],
+         ))
         ],
       ),
     );
