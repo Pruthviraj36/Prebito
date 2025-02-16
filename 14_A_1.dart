@@ -50,3 +50,6 @@ class SecondPage extends StatelessWidget {
     );
   }
 }
+
+
+https://chat.deepseek.com/a/chat/s/56ad887b-4f82-4174-9f12-b488e107b7c3
