@@ -47,6 +47,8 @@ dependencies:
   flutter_staggered_animations: ^1.1.1
   animated_text_kit: ^4.2.3
   http:
+  rxdart:
+  cached_network_image:
 
 dev_dependencies:
   flutter_test:

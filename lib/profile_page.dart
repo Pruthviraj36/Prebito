@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:mat_app/profile.dart';
@@ -23,15 +22,15 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
         actions: [
           IconButton(
             icon: Icon(
-              Provider.of<ProfileManager>(context).isFavorite(widget.profile)
+              Provider.of<ProfileManager>(context, listen: true).isFavorite(widget.profile)
                   ? Icons.favorite
                   : Icons.favorite_border,
               color: Colors.red,
             ),
-            onPressed: () {
-              Provider.of<ProfileManager>(context, listen: false)
+            onPressed: () async {
+              await Provider.of<ProfileManager>(context, listen: false)
                   .toggleFavorite(widget.profile);
-              setState(() {});
+              setState(() {}); // Refresh UI after update
             },
           ),
         ],
@@ -42,11 +41,11 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(
-              child: widget.profile.imagePath.isNotEmpty
+              child: widget.profile.imageUrl.isNotEmpty
                   ? ClipRRect(
                 borderRadius: BorderRadius.circular(10),
-                child: Image.file(
-                  File(widget.profile.imagePath),
+                child: Image.network(
+                  widget.profile.imageUrl,
                   height: 150,
                   width: 150,
                   fit: BoxFit.cover,

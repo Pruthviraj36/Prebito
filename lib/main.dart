@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:flutter/services.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:page_transition/page_transition.dart';
@@ -10,14 +12,12 @@ import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:mat_app/profile.dart';
 import 'package:intl/intl.dart';
-import 'database_helper.dart';
+import 'api_service.dart';
 import 'authentication.dart';
 import 'login_screen.dart';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
-
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,37 +37,36 @@ void main() async {
 
 class AppTheme {
   static final ThemeData lightTheme = ThemeData(
-    brightness: Brightness.light,
-    primaryColor: Colors.indigo,
-    colorScheme: const ColorScheme.light(
-      primary: Colors.indigo,
-      secondary: Colors.teal,
-    ),
-    scaffoldBackgroundColor: Colors.white,
-    appBarTheme: AppBarTheme(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      titleTextStyle: GoogleFonts.poppins(
-        fontSize: 22,
-        fontWeight: FontWeight.w600,
-        color: Colors.black,
+      brightness: Brightness.light,
+      primaryColor: Colors.indigo,
+      colorScheme: const ColorScheme.light(
+        primary: Colors.indigo,
+        secondary: Colors.teal,
       ),
-      iconTheme: const IconThemeData(color: Colors.black),
-    ),
-    textTheme: GoogleFonts.poppinsTextTheme().copyWith(
-      bodyLarge: TextStyle(color: Colors.grey.shade800),
-      displayLarge: const TextStyle(color: Colors.indigo),
-    ),
-    cardTheme: CardTheme(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        // color: Colors.white,
+      scaffoldBackgroundColor: Colors.white,
+      appBarTheme: AppBarTheme(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        titleTextStyle: GoogleFonts.poppins(
+          fontSize: 22,
+          fontWeight: FontWeight.w600,
+          color: Colors.black,
+        ),
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
-    )
-  );
+      textTheme: GoogleFonts.poppinsTextTheme().copyWith(
+        bodyLarge: TextStyle(color: Colors.grey.shade800),
+        displayLarge: const TextStyle(color: Colors.indigo),
+      ),
+      cardTheme: CardTheme(
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          // color: Colors.white,
+        ),
+      ));
 
-    static final ThemeData darkTheme = ThemeData(
+  static final ThemeData darkTheme = ThemeData(
     brightness: Brightness.dark,
     primaryColor: Colors.indigo,
     colorScheme: const ColorScheme.dark(
@@ -91,8 +90,7 @@ class AppTheme {
     ),
     cardTheme: CardTheme(
       elevation: 2,
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       color: Colors.grey.shade800,
     ),
   );
@@ -142,6 +140,15 @@ class HomePage extends StatefulWidget {
 
 class HomePageState extends State<HomePage> {
   File? _profileImage;
+  int _selectedIndex = 0; // Index for bottom navigation bar
+
+  // List of pages to display in the bottom navigation bar
+  final List<Widget> _pages = [
+    SwipeCardScreen(), // Swipeable card screen for browsing profiles
+    const AddProfilePage(),
+    const FavoritesPage(),
+    const AboutPage(),
+  ];
 
   Future<void> _pickImage() async {
     final pickedFile =
@@ -151,6 +158,12 @@ class HomePageState extends State<HomePage> {
         _profileImage = File(pickedFile.path);
       });
     }
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   @override
@@ -235,164 +248,174 @@ class HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(height: 20),
-            AnimatedTextKit(
-              animatedTexts: [
-                FadeAnimatedText(
-                  "Find your perfect match",
-                  textStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.secondary),
-                ),
-              ],
-              totalRepeatCount: 1,
-            ),
-            const SizedBox(height: 30),
-            Expanded(
-              child: AnimationLimiter(
-                child: GridView.count(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 15,
-                  mainAxisSpacing: 15,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  children: AnimationConfiguration.toStaggeredList(
-                    duration: const Duration(milliseconds: 375),
-                    childAnimationBuilder: (widget) => SlideAnimation(
-                      horizontalOffset: 50.0,
-                      child: FadeInAnimation(
-                        child: widget,
-                      ),
-                    ),
-                    children: [
-                      buildMenuCard(
-                        context,
-                        Icons.person_add,
-                        "Add Profile",
-                        const AddProfilePage(),
-                      ),
-                      buildMenuCard(
-                        context,
-                        Icons.people,
-                        "Browse Profiles",
-                        const BrowseProfilesPage(),
-                      ),
-                      buildMenuCard(
-                        context,
-                        Icons.favorite,
-                        "Favorites",
-                        const FavoritesPage(),
-                      ),
-                      buildMenuCard(
-                        context,
-                        Icons.info,
-                        "About Us",
-                        const AboutPage(),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white,
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                padding:
-                    const EdgeInsets.symmetric(vertical: 15, horizontal: 50),
-              ),
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (context) {
-                    return AlertDialog(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      title: const Text("Registration"),
-                      content: const Text("Registration feature coming soon!"),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text("OK"),
-                        ),
-                      ],
-                    );
-                  },
-                );
-              },
-              child: Text(
-                "Register as Moderator",
-                style: GoogleFonts.poppins(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            TextButton(
-              onPressed: () {
-                Auth().signOut();
-                Navigator.pushReplacement(
-                  context,
-                  PageTransition(
-                    type: PageTransitionType.fade,
-                    child: const LoginScreen(),
-                  ),
-                );
-              },
-              child: Text(
-                'Sign Out',
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  color: Colors.pinkAccent,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
+      body: _pages[_selectedIndex], // Display the selected page
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: Colors.pinkAccent,
+        unselectedItemColor: Colors.grey,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_add),
+            label: 'Add Profile',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.favorite),
+            label: 'Favorites',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.info),
+            label: 'About',
+          ),
+        ],
       ),
     );
   }
+}
 
-  Widget buildMenuCard(
-      BuildContext context, IconData icon, String title, Widget page) {
-    return Card(
-      elevation: 5,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(15),
-        onTap: () => Navigator.push(
-            context,
-            PageTransition(
-                type: PageTransitionType.scale,
-                alignment: Alignment.center,
-                child: page)),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 40, color: Colors.pinkAccent),
-            const SizedBox(height: 10),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
+class SwipeCardScreen extends StatefulWidget {
+  const SwipeCardScreen({super.key});
+
+  @override
+  SwipeCardScreenState createState() => SwipeCardScreenState();
+}
+
+class SwipeCardScreenState extends State<SwipeCardScreen> {
+  int currentIndex = 0;
+  late ProfileManager _profileManager;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _profileManager = Provider.of<ProfileManager>(context);
+  }
+
+  void _swipeCard(bool like) {
+    setState(() {
+      if (currentIndex < _profileManager.profiles.length - 1) {
+        currentIndex++;
+      } else {
+        currentIndex = 0;
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final profiles = _profileManager.profiles;
+
+    if (profiles.isEmpty) {
+      return const Center(child: Text('No profiles available'));
+    }
+
+    final profile = profiles[currentIndex];
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned.fill(
+            child: profile.imageUrl.isNotEmpty
+                ? Image.network(
+                    profile.imageUrl,
+                    fit: BoxFit.cover,
+                  )
+                : Container(
+                    color: Colors.grey.shade300,
+                    child:
+                        const Icon(Icons.person, size: 150, color: Colors.grey),
+                  ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.black.withOpacity(0.6), Colors.transparent],
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
               ),
             ),
-          ],
-        ),
+          ),
+          Dismissible(
+            key: ValueKey(profile),
+            direction: DismissDirection.horizontal,
+            onDismissed: (direction) {
+              _swipeCard(
+                  direction == DismissDirection.endToStart ? false : true);
+            },
+            child: Card(
+              margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 50),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    profile.imageUrl.isNotEmpty
+                        ? Image.network(profile.imageUrl,
+                            fit: BoxFit.cover,
+                            height: 350,
+                            width: double.infinity)
+                        : Container(
+                            height: 350,
+                            width: double.infinity,
+                            color: Colors.grey.shade300,
+                            child: const Icon(Icons.person,
+                                size: 150, color: Colors.grey),
+                          ),
+                    Padding(
+                      padding: const EdgeInsets.all(15.0),
+                      child: Column(
+                        children: [
+                          Text(
+                            '${profile.name}, ${profile.age}',
+                            style: const TextStyle(
+                                fontSize: 22, fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            profile.location,
+                            style: const TextStyle(
+                                fontSize: 16, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 30,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                FloatingActionButton(
+                  onPressed: () => _swipeCard(false),
+                  backgroundColor: Colors.black,
+                  child: const Icon(Icons.close, color: Colors.red, size: 30),
+                ),
+                const SizedBox(width: 30),
+                FloatingActionButton(
+                  onPressed: () {
+                    _profileManager.toggleFavorite(profile);
+                    _swipeCard(true);
+                  },
+                  backgroundColor: Colors.black,
+                  child:
+                      const Icon(Icons.favorite, color: Colors.pink, size: 30),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -408,7 +431,7 @@ class AddProfilePage extends StatefulWidget {
 class AddProfilePageState extends State<AddProfilePage> with ProfileValidationMixin {
   final _formKey = GlobalKey<FormState>();
   File? _profileImage;
-
+  String imageUrl = '';
   String fullName = '';
   String email = '';
   String mobileNumber = '';
@@ -423,21 +446,48 @@ class AddProfilePageState extends State<AddProfilePage> with ProfileValidationMi
   List<String> cities = ["Wankaner", "Morbi", "Ahmedabad", "Rajkot", "Kutch"];
   List<String> hobbyOptions = ["Reading", "Traveling", "Cooking", "Sports"];
 
-  Future<void> _pickImage() async {
-    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
-        _profileImage = File(pickedFile.path);
-      });
+  // Future<void> _pickImage() async {
+  //   final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+  //   if (pickedFile != null) {
+  //     File profileImage = File(pickedFile.path);
+  //
+  //     try {
+  //       String uploadedUrl = await _uploadImage(profileImage); // ✅ Pass the File
+  //       setState(() {
+  //         imageUrl = uploadedUrl; // Store the uploaded image URL
+  //       });
+  //     } catch (e) {
+  //       print('Image upload failed: $e');
+  //     }
+  //   }
+  // }
+
+  Future<String> _uploadImage(File profileImage) async {
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse('https://67c589e1351c081993fa6ae6.mockapi.io/users'),
+    );
+
+    request.files
+        .add(await http.MultipartFile.fromPath('image', profileImage.path));
+
+    final response = await request.send();
+    final responseBody = await response.stream.bytesToString();
+
+    if (response.statusCode == 201) {
+      return jsonDecode(
+          responseBody)['imageUrl']; // ✅ Return the uploaded image URL
+    } else {
+      throw Exception('Failed to upload image');
     }
   }
 
   Future<void> pickDate() async {
     final pickedDate = await showDatePicker(
       context: context,
-      initialDate:
-          DateTime.now().subtract(const Duration(days: 6570)), // 18 years ago
-      firstDate: DateTime(1930),
+      initialDate: DateTime.now().subtract(const Duration(days: 6570)),
+      // 18 years ago
+      firstDate: DateTime(1900),
       lastDate: DateTime.now(),
     );
     if (pickedDate != null) {
@@ -447,14 +497,31 @@ class AddProfilePageState extends State<AddProfilePage> with ProfileValidationMi
     }
   }
 
-  Future<void> _uploadImage() async {
-    if (_profileImage == null) return;
-
-    // Upload the image to your API here
-    // Example: You can use http package to upload the image
-    final response = await http.post(Uri.parse('https://67b41ccb392f4aa94fa962b3.mockapi.io/todo/matrimony-app'), body: {'image': _profileImage});
-    // Handle the response and get the image URL
+  @override
+  bool isValidAge(DateTime? dateOfBirth) {
+    if (dateOfBirth == null) return false;
+    final age = calculateAge(dateOfBirth);
+    return age >= 18 && age < 80;
   }
+
+  @override
+  int calculateAge(DateTime dob) {
+    final today = DateTime.now();
+    int age = today.year - dob.year;
+    if (today.month < dob.month ||
+        (today.month == dob.month && today.day < dob.day)) {
+      age--;
+    }
+    return age;
+  }
+
+  // Future<void> _uploadImage() async {
+  //   if (_profileImage == null) return;
+  //
+  //   final response = await http.post(
+  //       Uri.parse('https://67c589e1351c081993fa6ae6.mockapi.io/users'),
+  //       body: {'imageUrl': _profileImage});
+  // }
 
   Future<void> addUser() async {
     if (_formKey.currentState!.validate()) {
@@ -481,29 +548,46 @@ class AddProfilePageState extends State<AddProfilePage> with ProfileValidationMi
         return;
       }
 
-      await _uploadImage();
+      // Ensure _profileImage is not null before calling _uploadImage
+      if (_profileImage == null && imageUrl.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please select a profile image')));
+        return;
+      }
 
-      final newProfile = Profile(
-        name: fullName,
-        email: email,
-        mobileNumber: mobileNumber,
-        age: calculateAge(dateOfBirth!),
-        location: city,
-        gender: gender,
-        hobbies: hobbies.join(', '),
-        // Convert list to string
-        password: password,
-        imagePath: _profileImage?.path ?? '',
-        dateOfBirth: dateOfBirth != null ? dateOfBirth!.toIso8601String() : '',
-      );
+      try {
+        // Pass _profileImage to _uploadImage
+        String uploadedUrl = await _uploadImage(_profileImage!);
+        setState(() {
+          imageUrl = uploadedUrl; // Store the uploaded image URL
+        });
 
-      Provider.of<ProfileManager>(context, listen: false)
-          .addProfile(newProfile);
+        final newProfile = Profile(
+          name: fullName,
+          email: email,
+          mobileNumber: mobileNumber,
+          age: calculateAge(dateOfBirth!),
+          location: city,
+          gender: gender,
+          hobbies: hobbies.join(', '),
+          password: password,
+          imageUrl: imageUrl,
+          dateOfBirth:
+              dateOfBirth != null ? dateOfBirth!.toIso8601String() : '',
+        );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile Added Successfully')),
-      );
-      Navigator.pop(context);
+        Provider.of<ProfileManager>(context, listen: false)
+            .addProfile(newProfile);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Profile Added Successfully')),
+        );
+        Navigator.pop(context);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to upload image: $e')),
+        );
+      }
     }
   }
 
@@ -523,25 +607,45 @@ class AddProfilePageState extends State<AddProfilePage> with ProfileValidationMi
                 SizedBox(height: 15),
                 Center(
                   child: GestureDetector(
-                    onTap: _pickImage,
+                    onTap: () {
+                      // Open a dialog or text field to input the URL
+                      _showUrlInputDialog();
+                    },
                     child: CircleAvatar(
                       radius: 50,
                       backgroundColor: Colors.grey.shade300,
-                      backgroundImage: _profileImage != null ? FileImage(_profileImage!) : null,
-                      child: _profileImage == null
-                          ? const Icon(Icons.camera_alt, size: 40, color: Colors.grey)
+                      backgroundImage: imageUrl.isNotEmpty
+                          ? NetworkImage(imageUrl) // Use NetworkImage for URL
+                          : null,
+                      child: imageUrl.isEmpty
+                          ? const Icon(Icons.camera_alt,
+                              size: 40, color: Colors.grey)
                           : null,
                     ),
                   ),
                 ),
                 const SizedBox(height: 15),
                 TextFormField(
+                  decoration:
+                      const InputDecoration(labelText: 'Profile Photo URL'),
+                  onChanged: (value) => setState(() => imageUrl = value.trim()),
+                ),
+                const SizedBox(height: 15),
+                TextFormField(
+                  keyboardType: TextInputType.text,
+                  textCapitalization: TextCapitalization.words,
                   decoration: const InputDecoration(labelText: 'Full Name'),
-                  validator: (value) => value == null || value.isEmpty
-                      ? 'Full Name is required'
-                      : RegExp(r'[^a-zA-Z\s]').hasMatch(value)
-                          ? 'Only alphabetic characters and spaces are allowed'
-                          : null,
+                  inputFormatters: [AlphabeticInputFormatter()],
+                  // Add this line
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Full Name is required';
+                    }
+                    if (RegExp(r'[^a-zA-Z\s]').hasMatch(value)) {
+                      return 'Only alphabetic characters and spaces are allowed';
+                    }
+                    return null;
+                  },
                   onChanged: (value) => setState(() {
                     fullName = value.trim();
                   }),
@@ -553,16 +657,12 @@ class AddProfilePageState extends State<AddProfilePage> with ProfileValidationMi
                     if (value == null || value.isEmpty) {
                       return 'Email is required';
                     }
-
                     if (value.contains(RegExp(r'[A-Z]'))) {
                       return 'No uppercase letters are allowed';
                     }
-
                     if (value.contains(RegExp(r'[!#$%^&*(),?":{}|<>]'))) {
                       return "No special characters except '@', '.', '_', and '-' are allowed";
                     }
-
-                    // Ensure email contains only allowed domains
                     final allowedDomains = [
                       'gmail.com',
                       'hotmail.com',
@@ -573,14 +673,11 @@ class AddProfilePageState extends State<AddProfilePage> with ProfileValidationMi
                         .any((domain) => value.endsWith('@$domain'))) {
                       return 'Email must end with "@gmail.com", "@hotmail.com", "@outlook.com", or "@yahoo.com"';
                     }
-
-                    // General email pattern validation
                     final emailRegex =
                         RegExp(r'^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$');
                     if (!emailRegex.hasMatch(value)) {
                       return 'Enter a valid email address';
                     }
-
                     return null;
                   },
                   onChanged: (value) => setState(() {
@@ -592,12 +689,16 @@ class AddProfilePageState extends State<AddProfilePage> with ProfileValidationMi
                   decoration: const InputDecoration(labelText: 'Mobile Number'),
                   keyboardType: TextInputType.phone,
                   maxLength: 10,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  // Add this line
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Mobile Number is required';
-                    } else if (RegExp(r'[^0-9]').hasMatch(value)) {
+                    }
+                    if (RegExp(r'[^0-9]').hasMatch(value)) {
                       return 'Only numbers are allowed';
-                    } else if (value.length != 10) {
+                    }
+                    if (value.length != 10) {
                       return 'Mobile Number must be 10 digits';
                     }
                     return null;
@@ -723,7 +824,6 @@ class AddProfilePageState extends State<AddProfilePage> with ProfileValidationMi
                     if (value.length < 8) {
                       return 'Password must be at least 8 characters long';
                     }
-
                     return null;
                   },
                   onChanged: (value) => setState(() => password = value),
@@ -749,6 +849,34 @@ class AddProfilePageState extends State<AddProfilePage> with ProfileValidationMi
           ),
         ),
       ),
+    );
+  }
+
+  void _showUrlInputDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Enter Image URL'),
+          content: TextField(
+            onChanged: (value) => setState(() => imageUrl = value.trim()),
+            decoration: const InputDecoration(
+                hintText: 'https://example.com/image.jpg'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -843,7 +971,7 @@ class EditProfilePageState extends State<EditProfilePage> with ProfileValidation
         gender: gender,
         hobbies: hobbies.join(', '),
         // Convert list to string
-        imagePath: widget.profile.imagePath,
+        imageUrl: widget.profile.imageUrl,
         dateOfBirth: dateOfBirth != null ? dateOfBirth!.toIso8601String() : '',
         password: password.isNotEmpty ? password : widget.profile.password,
       );
@@ -1110,6 +1238,8 @@ class BrowseProfilesPageState extends State<BrowseProfilesPage> {
                 final profileManager = Provider.of<ProfileManager>(context);
                 final filteredProfiles =
                     _filterAndSortProfiles(profileManager.profiles);
+                print(
+                    "Filtered Profiles: ${filteredProfiles.length}"); // Log filtered profiles
 
                 return GridView.builder(
                   padding: const EdgeInsets.all(10),
@@ -1348,156 +1478,151 @@ class ProfileCard extends StatelessWidget {
           ),
         );
       },
-      child: Expanded(
-        child: Card(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          elevation: 5,
-          child: Column(
-            mainAxisSize: MainAxisSize.min, // Prevents unnecessary expansion
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(15)),
-                child: profile.imagePath.isNotEmpty
-                    ? Image.file(
-                        File(profile.imagePath),
-                        width: double.infinity,
-                        height: 100,
-                        fit: BoxFit.cover,
-                      )
-                    : Container(
-                        width: double.infinity,
-                        height: 100,
-                        color: Colors.grey.shade300,
-                        child: const Icon(Icons.person,
-                            size: 60, color: Colors.grey),
-                      ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  children: [
-                    Text(
-                      truncatedName,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    Text(
-                      '${profile.age} | ${profile.location}',
-                      overflow: TextOverflow.ellipsis,
-                      style:
-                          TextStyle(fontSize: 12, color: Colors.grey.shade700),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Expanded(
-                          child: IconButton(
-                            icon: Icon(
-                              isFavorite
-                                  ? Icons.favorite
-                                  : Icons.favorite_border,
-                              color: isFavorite ? Colors.red : null,
-                            ),
-                            onPressed: onFavoriteToggle,
-                          ),
-                        ),
-                        Expanded(
-                          child: IconButton(
-                            icon: const Icon(Icons.edit, color: Colors.blue),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      EditProfilePage(profile: profile),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                        Expanded(
-                          child: IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (context) {
-                                  return AlertDialog(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(15),
-                                    ),
-                                    title: Text(
-                                      "Delete Profile?",
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.redAccent,
-                                      ),
-                                    ),
-                                    content: Text(
-                                      "Are you sure you want to delete this profile? This action cannot be undone.",
-                                      style: GoogleFonts.poppins(
-                                          fontSize: 16, color: Colors.black87),
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        child: Text(
-                                          "Cancel",
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.grey.shade700,
-                                          ),
-                                        ),
-                                      ),
-                                      ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Theme.of(context)
-                                              .colorScheme
-                                              .primary,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                          ),
-                                        ),
-                                        onPressed: () {
-                                          Provider.of<ProfileManager>(context,
-                                                  listen: false)
-                                              .deleteProfile(profile);
-                                          Navigator.pop(
-                                              context); // Close dialog
-                                        },
-                                        child: Text(
-                                          "Delete",
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                        ),
-                      ],
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        elevation: 5,
+        child: Column(
+          mainAxisSize: MainAxisSize.min, // Prevents unnecessary expansion
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            ClipRRect(
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(15)),
+              child: profile.imageUrl.isNotEmpty
+                  ? Image.network(
+                      // Use Image.network for URL
+                      profile.imageUrl,
+                      width: double.infinity,
+                      height: 100,
+                      fit: BoxFit.cover,
                     )
-                  ],
-                ),
+                  : Container(
+                      width: double.infinity,
+                      height: 100,
+                      color: Colors.grey.shade300,
+                      child: const Icon(Icons.person,
+                          size: 60, color: Colors.grey),
+                    ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                children: [
+                  Text(
+                    truncatedName,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  Text(
+                    '${profile.age} | ${profile.location}',
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Expanded(
+                        child: IconButton(
+                          icon: Icon(
+                            isFavorite ? Icons.favorite : Icons.favorite_border,
+                            color: isFavorite ? Colors.red : null,
+                          ),
+                          onPressed: onFavoriteToggle,
+                        ),
+                      ),
+                      Expanded(
+                        child: IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.blue),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    EditProfilePage(profile: profile),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      Expanded(
+                        child: IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                  title: Text(
+                                    "Delete Profile?",
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.redAccent,
+                                    ),
+                                  ),
+                                  content: Text(
+                                    "Are you sure you want to delete this profile? This action cannot be undone.",
+                                    style: GoogleFonts.poppins(
+                                        fontSize: 16, color: Colors.black87),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: Text(
+                                        "Cancel",
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.grey.shade700,
+                                        ),
+                                      ),
+                                    ),
+                                    ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                      ),
+                                      onPressed: () {
+                                        Provider.of<ProfileManager>(context,
+                                                listen: false)
+                                            .deleteProfile(
+                                                profile.id.toString());
+                                        Navigator.pop(context); // Close dialog
+                                      },
+                                      child: Text(
+                                        "Delete",
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  )
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -1541,11 +1666,12 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(
-              child: widget.profile.imagePath.isNotEmpty
+              child: widget.profile.imageUrl.isNotEmpty
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(10),
-                      child: Image.file(
-                        File(widget.profile.imagePath),
+                      child: Image.network(
+                        // Use Image.network for URL
+                        widget.profile.imageUrl,
                         height: 150,
                         width: 150,
                         fit: BoxFit.cover,
@@ -1754,7 +1880,7 @@ mixin ProfileValidationMixin {
 class ProfileManager extends ChangeNotifier {
   final List<Profile> _profiles = [];
   final List<Profile> _favorites = [];
-  final DatabaseHelper _dbHelper = DatabaseHelper();
+  final ApiService _apiService = ApiService();
 
   List<Profile> get profiles => List.unmodifiable(_profiles);
 
@@ -1766,41 +1892,45 @@ class ProfileManager extends ChangeNotifier {
 
   Future<void> _loadProfiles() async {
     _profiles.clear();
-    _profiles.addAll(await _dbHelper.getProfiles());
+    final profiles = await _apiService.getProfiles();
+    print("Profiles Loaded: ${profiles.length}");
+    _profiles.addAll(profiles);
     notifyListeners();
   }
 
   Future<void> addProfile(Profile profile) async {
-    await _dbHelper.insertProfile(profile);
+    await _apiService.addProfile(profile);
     _loadProfiles();
   }
 
   Future<void> updateProfile(Profile oldProfile, Profile newProfile) async {
-    await _dbHelper.updateProfile(newProfile);
-    final index =
-        _profiles.indexWhere((profile) => profile.id == oldProfile.id);
-    if (index != -1) {
-      _profiles[index] = newProfile;
-      notifyListeners(); // Notify listeners to refresh the UI
-    }
-  }
-
-  Future<void> deleteProfile(Profile profile) async {
-    await _dbHelper.deleteProfile(profile.id!);
+    await _apiService.updateProfile(newProfile);
     _loadProfiles();
   }
 
-  // **Fixing Missing Methods**
-  void toggleFavorite(Profile profile) {
-    if (_favorites.contains(profile)) {
-      _favorites.remove(profile);
-    } else {
-      _favorites.add(profile);
-    }
-    notifyListeners();
+  Future<void> deleteProfile(String id) async {
+    await _apiService.deleteProfile(id);
+    _loadProfiles();
   }
 
   bool isFavorite(Profile profile) {
-    return _favorites.contains(profile);
+    return _profiles.firstWhere((p) => p.id == profile.id).isFavorite;
+  }
+
+  Future<void> toggleFavorite(Profile profile) async {
+    await _apiService.toggleFavorite(profile);
+    _loadProfiles();
+  }
+}
+
+class AlphabeticInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    final regExp = RegExp(r'^[a-zA-Z\s]*$');
+    if (regExp.hasMatch(newValue.text)) {
+      return newValue;
+    }
+    return oldValue;
   }
 }

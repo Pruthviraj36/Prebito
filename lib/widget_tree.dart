@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mat_app/authentication.dart';
 import 'package:mat_app/main.dart';
@@ -13,18 +14,24 @@ class WidgetTree extends StatefulWidget {
 class _WidgetTreeState extends State<WidgetTree> {
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder(
-      stream: Auth().authStateChanges,
+    return StreamBuilder<User?>(
+      stream: Auth().authStateChanges, // Firebase Auth state listener
       builder: (context, snapshot) {
-        print('Auth state changed: ${snapshot.connectionState}');
         if (snapshot.connectionState == ConnectionState.waiting) {
-          // Show a loading indicator while waiting for the authentication state
+          print("🔄 Waiting for authentication state...");
           return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasData) {
-          print('User is logged in');
-          return MatrimonyApp();
+        }
+
+        if (snapshot.hasError) {
+          print("❌ Error: ${snapshot.error}");
+          return Center(child: Text("Something went wrong. Please try again."));
+        }
+
+        if (snapshot.hasData) {
+          print("✅ User is logged in: ${snapshot.data?.email}");
+          return HomePage(onSignOut: () => Auth().signOut());
         } else {
-          print('User is not logged in');
+          print("🔑 User is not logged in");
           return const LoginScreen();
         }
       },
