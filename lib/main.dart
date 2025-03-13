@@ -1,23 +1,29 @@
 import 'dart:convert';
+import 'dart:ui';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+
+// import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
-import 'package:page_transition/page_transition.dart';
+
+// import 'package:page_transition/page_transition.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:mat_app/widget_tree.dart';
+// import 'package:path/path.dart';
+
+// import 'package:mat_app/widget_tree.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:mat_app/profile.dart';
 import 'package:intl/intl.dart';
 import 'api_service.dart';
 import 'authentication.dart';
-import 'login_screen.dart';
-import 'dart:io';
 
-import 'package:http/http.dart' as http;
+import 'package:mat_app/login_screen.dart';
+import 'dart:io';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,34 +43,34 @@ void main() async {
 
 class AppTheme {
   static final ThemeData lightTheme = ThemeData(
-      brightness: Brightness.light,
-      primaryColor: Colors.indigo,
-      colorScheme: const ColorScheme.light(
-        primary: Colors.indigo,
-        secondary: Colors.teal,
+    brightness: Brightness.light,
+    primaryColor: Colors.indigo,
+    colorScheme: const ColorScheme.light(
+      primary: Colors.indigo,
+      secondary: Colors.teal,
+    ),
+    scaffoldBackgroundColor: Colors.white,
+    appBarTheme: AppBarTheme(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      titleTextStyle: GoogleFonts.poppins(
+        fontSize: 22,
+        fontWeight: FontWeight.w600,
+        color: Colors.black,
       ),
-      scaffoldBackgroundColor: Colors.white,
-      appBarTheme: AppBarTheme(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        titleTextStyle: GoogleFonts.poppins(
-          fontSize: 22,
-          fontWeight: FontWeight.w600,
-          color: Colors.black,
-        ),
-        iconTheme: const IconThemeData(color: Colors.black),
+      iconTheme: const IconThemeData(color: Colors.black),
+    ),
+    textTheme: GoogleFonts.poppinsTextTheme().copyWith(
+      bodyLarge: TextStyle(color: Colors.grey.shade800),
+      displayLarge: const TextStyle(color: Colors.indigo),
+    ),
+    cardTheme: CardTheme(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
       ),
-      textTheme: GoogleFonts.poppinsTextTheme().copyWith(
-        bodyLarge: TextStyle(color: Colors.grey.shade800),
-        displayLarge: const TextStyle(color: Colors.indigo),
-      ),
-      cardTheme: CardTheme(
-        elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          // color: Colors.white,
-        ),
-      ));
+    ),
+  );
 
   static final ThemeData darkTheme = ThemeData(
     brightness: Brightness.dark,
@@ -122,7 +128,9 @@ class MatrimonyApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: themeProvider.themeMode,
-          home: const WidgetTree(),
+          home: HomePage(onSignOut: () {
+            Auth().signOut();
+          }),
         );
       },
     );
@@ -139,26 +147,7 @@ class HomePage extends StatefulWidget {
 }
 
 class HomePageState extends State<HomePage> {
-  File? _profileImage;
-  int _selectedIndex = 0; // Index for bottom navigation bar
-
-  // List of pages to display in the bottom navigation bar
-  final List<Widget> _pages = [
-    SwipeCardScreen(), // Swipeable card screen for browsing profiles
-    const AddProfilePage(),
-    const FavoritesPage(),
-    const AboutPage(),
-  ];
-
-  Future<void> _pickImage() async {
-    final pickedFile =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
-        _profileImage = File(pickedFile.path);
-      });
-    }
-  }
+  int _selectedIndex = 0;
 
   void _onItemTapped(int index) {
     setState(() {
@@ -168,87 +157,121 @@ class HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final User? user = Auth().currentUser;
-    final themeProvider = Provider.of<ThemeProvider>(context);
-
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.black, // Dark background for contrast
       appBar: AppBar(
-        title: AnimatedTextKit(
-          animatedTexts: [
-            TypewriterAnimatedText(
-              'Soul Bridge',
-              textStyle: GoogleFonts.poppins(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-              speed: const Duration(milliseconds: 100),
-            ),
-          ],
-          totalRepeatCount: 1,
-        ),
-        centerTitle: true,
-        elevation: 0,
+        title: const Text('Matrimony App'),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: PopupMenuButton<String>(
-              icon: CircleAvatar(
-                backgroundColor: Colors.grey.shade200,
-                radius: 20,
-                child: _profileImage != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: Image.file(
-                          _profileImage!,
-                          width: 40,
-                          height: 40,
-                          fit: BoxFit.cover,
-                        ),
-                      )
-                    : user?.email != null
-                        ? Text(
-                            user!.email![0].toUpperCase(),
-                            style: const TextStyle(
-                                fontSize: 20, color: Colors.pinkAccent),
-                          )
-                        : const Icon(Icons.person, color: Colors.pinkAccent),
-              ),
-              onSelected: (String value) {
-                if (value == 'logout') {
-                  setState(() {
-                    widget.onSignOut();
-                  });
-                } else if (value == 'dark_mode') {
-                  setState(() {
-                    themeProvider.toggleTheme(!themeProvider.isDarkMode);
-                  });
-                } else if (value == 'upload_photo') {
-                  _pickImage();
-                }
-              },
-              itemBuilder: (BuildContext context) {
-                return [
-                  const PopupMenuItem<String>(
-                    value: 'dark_mode',
-                    child: Text('Toggle Dark Mode'),
-                  ),
-                  const PopupMenuItem<String>(
-                    value: 'upload_photo',
-                    child: Text('Upload Profile Photo'),
-                  ),
-                  const PopupMenuItem<String>(
-                    value: 'logout',
-                    child: Text('Logout'),
-                  ),
-                ];
-              },
-            ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: widget.onSignOut,
           ),
         ],
       ),
-      body: _pages[_selectedIndex], // Display the selected page
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor,
+                image: DecorationImage(
+                  image: NetworkImage(
+                    Auth().currentUser?.photoURL ?? 'https://via.placeholder.com/150',
+                  ),
+                  fit: BoxFit.cover,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  CircleAvatar(
+                    radius: 30,
+                    backgroundImage: NetworkImage(
+                      Auth().currentUser?.photoURL ?? 'https://via.placeholder.com/150',
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    Auth().currentUser?.displayName ?? 'User',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    Auth().currentUser?.email ?? '',
+                    style: const TextStyle(
+                      color: Colors.white70,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.person),
+              title: const Text('My Profile'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const UserProfilePage(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.favorite),
+              title: const Text('Favorites'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const FavoritesPage(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text('Settings'),
+              onTap: () {
+                Navigator.pop(context);
+                // TODO: Implement settings page
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.help),
+              title: const Text('Help & Support'),
+              onTap: () {
+                Navigator.pop(context);
+                // TODO: Implement help & support page
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.info),
+              title: const Text('About'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AboutPage(),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+      body: _selectedIndex == 0
+          ? const HomeScreenContent()
+          : _getScreen(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
@@ -256,166 +279,237 @@ class HomePageState extends State<HomePage> {
         selectedItemColor: Colors.pinkAccent,
         unselectedItemColor: Colors.grey,
         items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
+              icon: Icon(Icons.person_add), label: 'Add Profile'),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person_add),
-            label: 'Add Profile',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.favorite),
-            label: 'Favorites',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.info),
-            label: 'About',
-          ),
+              icon: Icon(Icons.favorite), label: 'Favorites'),
+          BottomNavigationBarItem(icon: Icon(Icons.info), label: 'About'),
         ],
       ),
     );
   }
+
+  Widget _getScreen(int index) {
+    switch (index) {
+      case 1:
+        return const AddProfilePage();
+      case 2:
+        return const FavoritesPage();
+      case 3:
+        return const AboutPage();
+      default:
+        return const HomeScreenContent();
+    }
+  }
 }
 
-class SwipeCardScreen extends StatefulWidget {
-  const SwipeCardScreen({super.key});
-
-  @override
-  SwipeCardScreenState createState() => SwipeCardScreenState();
-}
-
-class SwipeCardScreenState extends State<SwipeCardScreen> {
-  int currentIndex = 0;
-  late ProfileManager _profileManager;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _profileManager = Provider.of<ProfileManager>(context);
-  }
-
-  void _swipeCard(bool like) {
-    setState(() {
-      if (currentIndex < _profileManager.profiles.length - 1) {
-        currentIndex++;
-      } else {
-        currentIndex = 0;
-      }
-    });
-  }
+class HomeScreenContent extends StatelessWidget {
+  const HomeScreenContent({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final profiles = _profileManager.profiles;
+    final profileManager = Provider.of<ProfileManager>(context);
+    final profiles = profileManager.profiles;
 
-    if (profiles.isEmpty) {
-      return const Center(child: Text('No profiles available'));
+    // Show loading indicator while profiles are being loaded
+    if (profileManager.isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
     }
 
-    final profile = profiles[currentIndex];
+    // Ensure profiles are not null
+    final males = profiles.where((p) => p.gender == 'Male').length;
+    final females = profiles.where((p) => p.gender == 'Female').length;
+    final totalProfiles = profiles.length;
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        alignment: Alignment.center,
-        children: [
-          Positioned.fill(
-            child: profile.imageUrl.isNotEmpty
-                ? Image.network(
-                    profile.imageUrl,
-                    fit: BoxFit.cover,
-                  )
-                : Container(
-                    color: Colors.grey.shade300,
-                    child:
-                        const Icon(Icons.person, size: 150, color: Colors.grey),
-                  ),
-          ),
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.black.withOpacity(0.6), Colors.transparent],
-                begin: Alignment.bottomCenter,
-                end: Alignment.topCenter,
-              ),
-            ),
-          ),
-          Dismissible(
-            key: ValueKey(profile),
-            direction: DismissDirection.horizontal,
-            onDismissed: (direction) {
-              _swipeCard(
-                  direction == DismissDirection.endToStart ? false : true);
-            },
-            child: Card(
-              margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 50),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20)),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    profile.imageUrl.isNotEmpty
-                        ? Image.network(profile.imageUrl,
-                            fit: BoxFit.cover,
-                            height: 350,
-                            width: double.infinity)
-                        : Container(
-                            height: 350,
-                            width: double.infinity,
-                            color: Colors.grey.shade300,
-                            child: const Icon(Icons.person,
-                                size: 150, color: Colors.grey),
-                          ),
-                    Padding(
-                      padding: const EdgeInsets.all(15.0),
-                      child: Column(
-                        children: [
-                          Text(
-                            '${profile.name}, ${profile.age}',
-                            style: const TextStyle(
-                                fontSize: 22, fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            profile.location,
-                            style: const TextStyle(
-                                fontSize: 16, color: Colors.grey),
-                          ),
-                        ],
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            const SizedBox(height: 20),
+
+            // 🔹 Glass Card for Stats & Gender Chart
+            GlassContainer(
+              child: SizedBox(
+                width: double.infinity,
+                // ✅ Ensures it takes full width without infinite constraints
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    // ✅ Prevents infinite height issue
+                    children: [
+                      Text(
+                        'Total Profiles: $totalProfiles',
+                        style: GoogleFonts.poppins(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 10),
+
+                      // ✅ Wrap Pie Chart in ConstrainedBox to prevent infinite layout issues
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: 150,
+                          // ✅ Ensures PieChart gets a fixed width
+                          maxHeight:
+                              150, // ✅ Ensures PieChart gets a fixed height
+                        ),
+                        child: _buildGenderChart(males, females),
+                      ),
+
+                      const SizedBox(height: 10),
+                      _buildLegendRow(),
+                    ],
+                  ),
                 ),
               ),
             ),
+            const SizedBox(height: 20),
+
+            // 🔹 Display Profile Cards
+            profiles.isNotEmpty
+                ? GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(10),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 1,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                      childAspectRatio: 0.9,
+                    ),
+                    itemCount: profiles.length,
+                    itemBuilder: (context, index) {
+                      final profile = profiles[index];
+                      return ProfileCard(
+                        profile: profile,
+                        onTap: () {
+                          // Implement tap action
+                        },
+                        onEdit: () {
+                          // Implement edit action
+                        },
+                        onDelete: () {
+                          // Implement delete action
+                        },
+                        onToggleFavorite: () {
+                          profileManager.toggleFavorite(profile);
+                        },
+                        onToggleOptap: () {
+                          // Implement optap toggle action
+                        },
+                      );
+                    },
+                  )
+                : const Center(
+                    child: Text(
+                      "No profiles found!",
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                  ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGenderChart(int males, int females) {
+    if (males == 0 && females == 0) {
+      return const Text(
+        "No gender data available",
+        style: TextStyle(color: Colors.white70, fontSize: 16),
+      );
+    }
+
+    return SizedBox(
+      width: 150, // ✅ Explicit width
+      height: 150, // ✅ Explicit height
+      child: PieChart(
+        PieChartData(
+          sections: [
+            PieChartSectionData(
+              value: males.toDouble(),
+              color: Colors.blue,
+              title: '$males',
+              radius: 40,
+            ),
+            PieChartSectionData(
+              value: females.toDouble(),
+              color: Colors.pink,
+              title: '$females',
+              radius: 40,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLegendRow() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _buildLegendItem(Colors.blue, 'Male'),
+        const SizedBox(width: 20),
+        _buildLegendItem(Colors.pink, 'Female'),
+      ],
+    );
+  }
+
+  Widget _buildLegendItem(Color color, String label) {
+    return Row(
+      children: [
+        Container(width: 16, height: 16, color: color),
+        const SizedBox(width: 5),
+        Text(label, style: const TextStyle(color: Colors.white70)),
+      ],
+    );
+  }
+}
+
+class GlassContainer extends StatelessWidget {
+  final Widget child;
+
+  const GlassContainer({Key? key, required this.child}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    // Calculate a finite width based on the device width.
+    final width = MediaQuery.of(context).size.width * 0.9;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0),
+        child: Container(
+          width: width,
+          // Adding a minimum height helps avoid unbounded constraints.
+          constraints: const BoxConstraints(
+            minHeight: 100,
           ),
-          Positioned(
-            bottom: 30,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                FloatingActionButton(
-                  onPressed: () => _swipeCard(false),
-                  backgroundColor: Colors.black,
-                  child: const Icon(Icons.close, color: Colors.red, size: 30),
-                ),
-                const SizedBox(width: 30),
-                FloatingActionButton(
-                  onPressed: () {
-                    _profileManager.toggleFavorite(profile);
-                    _swipeCard(true);
-                  },
-                  backgroundColor: Colors.black,
-                  child:
-                      const Icon(Icons.favorite, color: Colors.pink, size: 30),
-                ),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            gradient: LinearGradient(
+              colors: [
+                Colors.white.withOpacity(0.15),
+                Colors.white.withOpacity(0.05),
               ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.2),
+              width: 1.5,
             ),
           ),
-        ],
+          child: child,
+        ),
       ),
     );
   }
@@ -428,7 +522,7 @@ class AddProfilePage extends StatefulWidget {
   AddProfilePageState createState() => AddProfilePageState();
 }
 
-class AddProfilePageState extends State<AddProfilePage> with ProfileValidationMixin {
+class AddProfilePageState extends State<AddProfilePage> {
   final _formKey = GlobalKey<FormState>();
   File? _profileImage;
   String imageUrl = '';
@@ -442,51 +536,89 @@ class AddProfilePageState extends State<AddProfilePage> with ProfileValidationMi
   String password = '';
   String confirmPassword = '';
 
-  // After
   List<String> cities = ["Wankaner", "Morbi", "Ahmedabad", "Rajkot", "Kutch"];
   List<String> hobbyOptions = ["Reading", "Traveling", "Cooking", "Sports"];
 
-  // Future<void> _pickImage() async {
-  //   final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
-  //   if (pickedFile != null) {
-  //     File profileImage = File(pickedFile.path);
-  //
-  //     try {
-  //       String uploadedUrl = await _uploadImage(profileImage); // ✅ Pass the File
-  //       setState(() {
-  //         imageUrl = uploadedUrl; // Store the uploaded image URL
-  //       });
-  //     } catch (e) {
-  //       print('Image upload failed: $e');
-  //     }
-  //   }
-  // }
+  Future<void> pickImage() async {
+    try {
+      final pickedFile =
+          await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (pickedFile != null) {
+        File imageFile = File(pickedFile.path);
+        
+        // Show loading indicator
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
 
-  Future<String> _uploadImage(File profileImage) async {
-    final request = http.MultipartRequest(
-      'POST',
-      Uri.parse('https://67c589e1351c081993fa6ae6.mockapi.io/users'),
-    );
+        // More aggressive compression settings
+        final compressedImage = await FlutterImageCompress.compressAndGetFile(
+          imageFile.absolute.path,
+          imageFile.absolute.path + '_compressed.jpg',
+          quality: 20, // Even more reduced quality for smaller size
+          minWidth: 400, // Further reduced maximum width
+          minHeight: 400, // Further reduced maximum height
+          rotate: 0,
+          keepExif: false, // Remove EXIF data to reduce size
+          format: CompressFormat.jpeg,
+        );
+        
+        // Hide loading indicator
+        Navigator.pop(context);
 
-    request.files
-        .add(await http.MultipartFile.fromPath('image', profileImage.path));
+        if (compressedImage != null) {
+          final compressedFile = File(compressedImage.path);
+          List<int> imageBytes = await compressedFile.readAsBytes();
+          
+          // Check if the compressed image is still too large (e.g., > 500KB)
+          if (imageBytes.length > 512 * 1024) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Image is still too large. Please choose a smaller image.'),
+                backgroundColor: Colors.red,
+              ),
+            );
+            return;
+          }
 
-    final response = await request.send();
-    final responseBody = await response.stream.bytesToString();
-
-    if (response.statusCode == 201) {
-      return jsonDecode(
-          responseBody)['imageUrl']; // ✅ Return the uploaded image URL
-    } else {
-      throw Exception('Failed to upload image');
+          String base64Image = base64Encode(imageBytes);
+          setState(() {
+            imageUrl = base64Image;
+            _profileImage = compressedFile;
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to compress image. Please try again.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // Hide loading indicator if it's still showing
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error processing image: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
   Future<void> pickDate() async {
     final pickedDate = await showDatePicker(
       context: context,
-      initialDate: DateTime.now().subtract(const Duration(days: 6570)),
-      // 18 years ago
+      initialDate:
+          DateTime.now().subtract(const Duration(days: 6570)), // 18 years ago
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
     );
@@ -496,32 +628,6 @@ class AddProfilePageState extends State<AddProfilePage> with ProfileValidationMi
       });
     }
   }
-
-  @override
-  bool isValidAge(DateTime? dateOfBirth) {
-    if (dateOfBirth == null) return false;
-    final age = calculateAge(dateOfBirth);
-    return age >= 18 && age < 80;
-  }
-
-  @override
-  int calculateAge(DateTime dob) {
-    final today = DateTime.now();
-    int age = today.year - dob.year;
-    if (today.month < dob.month ||
-        (today.month == dob.month && today.day < dob.day)) {
-      age--;
-    }
-    return age;
-  }
-
-  // Future<void> _uploadImage() async {
-  //   if (_profileImage == null) return;
-  //
-  //   final response = await http.post(
-  //       Uri.parse('https://67c589e1351c081993fa6ae6.mockapi.io/users'),
-  //       body: {'imageUrl': _profileImage});
-  // }
 
   Future<void> addUser() async {
     if (_formKey.currentState!.validate()) {
@@ -537,31 +643,14 @@ class AddProfilePageState extends State<AddProfilePage> with ProfileValidationMi
         );
         return;
       }
-      if (!isValidAge(dateOfBirth)) {
+      if (_profileImage == null && imageUrl.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Age must be between 18 and 80. Current age: ${calculateAge(dateOfBirth!)}',
-            ),
-          ),
+          const SnackBar(content: Text('Please select a profile image')),
         );
         return;
       }
 
-      // Ensure _profileImage is not null before calling _uploadImage
-      if (_profileImage == null && imageUrl.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Please select a profile image')));
-        return;
-      }
-
       try {
-        // Pass _profileImage to _uploadImage
-        String uploadedUrl = await _uploadImage(_profileImage!);
-        setState(() {
-          imageUrl = uploadedUrl; // Store the uploaded image URL
-        });
-
         final newProfile = Profile(
           name: fullName,
           email: email,
@@ -572,23 +661,35 @@ class AddProfilePageState extends State<AddProfilePage> with ProfileValidationMi
           hobbies: hobbies.join(', '),
           password: password,
           imageUrl: imageUrl,
-          dateOfBirth:
-              dateOfBirth != null ? dateOfBirth!.toIso8601String() : '',
+          dateOfBirth: dateOfBirth!.toIso8601String(),
         );
 
-        Provider.of<ProfileManager>(context, listen: false)
-            .addProfile(newProfile);
-
+        await Provider.of<ProfileManager>(context, listen: false).addProfile(newProfile);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Profile Added Successfully')),
         );
-        Navigator.pop(context);
+
+        // Navigate back to the home screen
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage(onSignOut: () { Auth().signOut(); })),
+        );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to upload image: $e')),
+          SnackBar(content: Text('Failed to add profile: $e')),
         );
       }
     }
+  }
+
+  int calculateAge(DateTime dob) {
+    final today = DateTime.now();
+    int age = today.year - dob.year;
+    if (today.month < dob.month ||
+        (today.month == dob.month && today.day < dob.day)) {
+      age--;
+    }
+    return age;
   }
 
   @override
@@ -596,287 +697,197 @@ class AddProfilePageState extends State<AddProfilePage> with ProfileValidationMi
     return Scaffold(
       appBar: AppBar(title: const Text('Add Profile')),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Form(
-            key: _formKey,
-            autovalidateMode: AutovalidateMode.onUserInteraction,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: 15),
-                Center(
-                  child: GestureDetector(
-                    onTap: () {
-                      // Open a dialog or text field to input the URL
-                      _showUrlInputDialog();
+        padding: const EdgeInsets.all(20.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: GestureDetector(
+                  onTap: pickImage,
+                  child: CircleAvatar(
+                    radius: 50,
+                    backgroundColor: Colors.grey.shade300,
+                    backgroundImage: _profileImage != null
+                        ? FileImage(_profileImage!)
+                        : null,
+                    child: _profileImage == null
+                        ? const Icon(Icons.camera_alt,
+                            size: 40, color: Colors.grey)
+                        : null,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              TextFormField(
+                decoration: const InputDecoration(
+                    labelText: 'Full Name', prefixIcon: Icon(Icons.person)),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Full Name is required';
+                  }
+                  if (RegExp(r'[^a-zA-Z\s]').hasMatch(value)) {
+                    return 'Only alphabetic characters and spaces are allowed';
+                  }
+                  return null;
+                },
+                onChanged: (value) => setState(() => fullName = value.trim()),
+              ),
+              const SizedBox(height: 15),
+              TextFormField(
+                decoration: const InputDecoration(
+                    labelText: 'Email Address', prefixIcon: Icon(Icons.email)),
+                onChanged: (value) =>
+                    setState(() => email = value.trim().toLowerCase()),
+              ),
+              const SizedBox(height: 15),
+              TextFormField(
+                decoration: const InputDecoration(
+                    labelText: 'Mobile Number', prefixIcon: Icon(Icons.phone)),
+                keyboardType: TextInputType.phone,
+                maxLength: 10,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Mobile Number is required';
+                  }
+                  if (RegExp(r'[^0-9]').hasMatch(value)) {
+                    return 'Only numbers are allowed';
+                  }
+                  if (value.length != 10) {
+                    return 'Mobile Number must be 10 digits';
+                  }
+                  return null;
+                },
+                onChanged: (value) =>
+                    setState(() => mobileNumber = value.trim()),
+              ),
+              const SizedBox(height: 15),
+              DropdownButtonFormField<String>(
+                decoration: const InputDecoration(labelText: 'City'),
+                items: cities
+                    .map((city) =>
+                        DropdownMenuItem(value: city, child: Text(city)))
+                    .toList(),
+                onChanged: (value) => setState(() => city = value!),
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'City is required' : null,
+              ),
+              const SizedBox(height: 15),
+              const Text('Date of Birth:',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                ),
+                onPressed: pickDate,
+                icon: const Icon(Icons.calendar_today, color: Colors.white),
+                label: Text(
+                  dateOfBirth == null
+                      ? 'Select Date of Birth'
+                      : DateFormat('dd/MM/yyyy').format(dateOfBirth!),
+                  style: const TextStyle(fontSize: 16, color: Colors.white),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text('Gender:',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              Row(
+                children: [
+                  Expanded(
+                    child: RadioListTile(
+                      title: const Text('Male'),
+                      value: 'Male',
+                      groupValue: gender,
+                      onChanged: (value) =>
+                          setState(() => gender = value as String),
+                    ),
+                  ),
+                  Expanded(
+                    child: RadioListTile(
+                      title: const Text('Female'),
+                      value: 'Female',
+                      groupValue: gender,
+                      onChanged: (value) =>
+                          setState(() => gender = value as String),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              const Text('Hobbies:',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              Wrap(
+                spacing: 10,
+                children: hobbyOptions.map((hobby) {
+                  return ChoiceChip(
+                    label: Text(hobby),
+                    selected: hobbies.contains(hobby),
+                    onSelected: (selected) {
+                      setState(() {
+                        if (selected) {
+                          hobbies.add(hobby);
+                        } else {
+                          hobbies.remove(hobby);
+                        }
+                      });
                     },
-                    child: CircleAvatar(
-                      radius: 50,
-                      backgroundColor: Colors.grey.shade300,
-                      backgroundImage: imageUrl.isNotEmpty
-                          ? NetworkImage(imageUrl) // Use NetworkImage for URL
-                          : null,
-                      child: imageUrl.isEmpty
-                          ? const Icon(Icons.camera_alt,
-                              size: 40, color: Colors.grey)
-                          : null,
-                    ),
-                  ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 20),
+              TextFormField(
+                decoration: const InputDecoration(
+                    labelText: 'Password', prefixIcon: Icon(Icons.lock)),
+                obscureText: true,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Password is required';
+                  }
+                  if (!value.contains(RegExp(r'[A-Z]'))) {
+                    return 'Password must contain at least one uppercase letter';
+                  }
+                  if (!value.contains(RegExp(r'[a-z]'))) {
+                    return 'Password must contain at least one lowercase letter';
+                  }
+                  if (!value.contains(RegExp(r'[0-9]'))) {
+                    return 'Password must contain at least one digit (0-9)';
+                  }
+                  if (!value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
+                    return 'Password must contain at least one special character';
+                  }
+                  if (value.length < 8) {
+                    return 'Password must be at least 8 characters long';
+                  }
+                  return null;
+                },
+                onChanged: (value) => setState(() => password = value),
+              ),
+              const SizedBox(height: 15),
+              TextFormField(
+                decoration: const InputDecoration(
+                    labelText: 'Confirm Password',
+                    prefixIcon: Icon(Icons.lock)),
+                obscureText: true,
+                validator: (value) =>
+                    value != password ? 'Passwords do not match' : null,
+                onChanged: (value) => setState(() => confirmPassword = value),
+              ),
+              const SizedBox(height: 20),
+              Center(
+                child: ElevatedButton(
+                  onPressed: addUser,
+                  child: const Text('Add Profile'),
                 ),
-                const SizedBox(height: 15),
-                TextFormField(
-                  decoration:
-                      const InputDecoration(labelText: 'Profile Photo URL'),
-                  onChanged: (value) => setState(() => imageUrl = value.trim()),
-                ),
-                const SizedBox(height: 15),
-                TextFormField(
-                  keyboardType: TextInputType.text,
-                  textCapitalization: TextCapitalization.words,
-                  decoration: const InputDecoration(labelText: 'Full Name'),
-                  inputFormatters: [AlphabeticInputFormatter()],
-                  // Add this line
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Full Name is required';
-                    }
-                    if (RegExp(r'[^a-zA-Z\s]').hasMatch(value)) {
-                      return 'Only alphabetic characters and spaces are allowed';
-                    }
-                    return null;
-                  },
-                  onChanged: (value) => setState(() {
-                    fullName = value.trim();
-                  }),
-                ),
-                const SizedBox(height: 15),
-                TextFormField(
-                  decoration: const InputDecoration(labelText: 'Email Address'),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Email is required';
-                    }
-                    if (value.contains(RegExp(r'[A-Z]'))) {
-                      return 'No uppercase letters are allowed';
-                    }
-                    if (value.contains(RegExp(r'[!#$%^&*(),?":{}|<>]'))) {
-                      return "No special characters except '@', '.', '_', and '-' are allowed";
-                    }
-                    final allowedDomains = [
-                      'gmail.com',
-                      'hotmail.com',
-                      'yahoo.com',
-                      'outlook.com'
-                    ];
-                    if (!allowedDomains
-                        .any((domain) => value.endsWith('@$domain'))) {
-                      return 'Email must end with "@gmail.com", "@hotmail.com", "@outlook.com", or "@yahoo.com"';
-                    }
-                    final emailRegex =
-                        RegExp(r'^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$');
-                    if (!emailRegex.hasMatch(value)) {
-                      return 'Enter a valid email address';
-                    }
-                    return null;
-                  },
-                  onChanged: (value) => setState(() {
-                    email = value.trim().toLowerCase();
-                  }),
-                ),
-                const SizedBox(height: 15),
-                TextFormField(
-                  decoration: const InputDecoration(labelText: 'Mobile Number'),
-                  keyboardType: TextInputType.phone,
-                  maxLength: 10,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  // Add this line
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Mobile Number is required';
-                    }
-                    if (RegExp(r'[^0-9]').hasMatch(value)) {
-                      return 'Only numbers are allowed';
-                    }
-                    if (value.length != 10) {
-                      return 'Mobile Number must be 10 digits';
-                    }
-                    return null;
-                  },
-                  onChanged: (value) => setState(() {
-                    mobileNumber = value.trim();
-                  }),
-                ),
-                const SizedBox(height: 10),
-                DropdownButtonFormField<String>(
-                  decoration: const InputDecoration(labelText: 'City'),
-                  items: cities
-                      .map((city) =>
-                          DropdownMenuItem(value: city, child: Text(city)))
-                      .toList(),
-                  onChanged: (value) => setState(() => city = value!),
-                  validator: (value) => value == null || value.isEmpty
-                      ? 'City is required'
-                      : null,
-                ),
-                const SizedBox(height: 15),
-                const Text(
-                  'Date of Birth:',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-                const SizedBox(height: 10),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 15, horizontal: 20),
-                  ),
-                  onPressed: pickDate,
-                  icon: const Icon(Icons.calendar_today, color: Colors.white),
-                  label: Text(
-                    dateOfBirth == null
-                        ? 'Select Date of Birth'
-                        : DateFormat('dd/MM/yyyy').format(dateOfBirth!),
-                    style: const TextStyle(fontSize: 16, color: Colors.white),
-                  ),
-                ),
-                if (dateOfBirth != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 10),
-                    child: Text(
-                      'Age: ${calculateAge(dateOfBirth!)} years',
-                      style:
-                          TextStyle(fontSize: 14, color: Colors.grey.shade700),
-                    ),
-                  ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Gender:',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: RadioListTile(
-                        title: const Text('Male'),
-                        value: 'Male',
-                        groupValue: gender,
-                        onChanged: (value) =>
-                            setState(() => gender = value as String),
-                      ),
-                    ),
-                    Expanded(
-                      child: RadioListTile(
-                        title: const Text('Female'),
-                        value: 'Female',
-                        groupValue: gender,
-                        onChanged: (value) =>
-                            setState(() => gender = value as String),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  'Hobbies:',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-                Wrap(
-                  spacing: 10,
-                  children: hobbyOptions.map((hobby) {
-                    return ChoiceChip(
-                      label: Text(hobby),
-                      selected: hobbies.contains(hobby),
-                      onSelected: (selected) {
-                        setState(() {
-                          if (selected) {
-                            hobbies.add(hobby);
-                          } else {
-                            hobbies.remove(hobby);
-                          }
-                        });
-                      },
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 20),
-                TextFormField(
-                  decoration: const InputDecoration(labelText: 'Password'),
-                  obscureText: true,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Password is required';
-                    }
-                    if (!value.contains(RegExp(r'[A-Z]'))) {
-                      return 'Password must contain at least one uppercase letter';
-                    }
-                    if (!value.contains(RegExp(r'[a-z]'))) {
-                      return 'Password must contain at least one lowercase letter';
-                    }
-                    if (!value.contains(RegExp(r'[0-9]'))) {
-                      return 'Password must contain at least one digit (0-9)';
-                    }
-                    if (!value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
-                      return 'Password must contain at least one special character';
-                    }
-                    if (value.length < 8) {
-                      return 'Password must be at least 8 characters long';
-                    }
-                    return null;
-                  },
-                  onChanged: (value) => setState(() => password = value),
-                ),
-                const SizedBox(height: 15),
-                TextFormField(
-                  decoration:
-                      const InputDecoration(labelText: 'Confirm Password'),
-                  obscureText: true,
-                  validator: (value) =>
-                      value != password ? 'Passwords do not match' : null,
-                  onChanged: (value) => setState(() => confirmPassword = value),
-                ),
-                const SizedBox(height: 20),
-                Center(
-                  child: ElevatedButton(
-                    onPressed: addUser,
-                    child: const Text('Add Profile'),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
-    );
-  }
-
-  void _showUrlInputDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Enter Image URL'),
-          content: TextField(
-            onChanged: (value) => setState(() => imageUrl = value.trim()),
-            decoration: const InputDecoration(
-                hintText: 'https://example.com/image.jpg'),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('OK'),
-            ),
-          ],
-        );
-      },
     );
   }
 }
@@ -1201,12 +1212,93 @@ class BrowseProfilesPageState extends State<BrowseProfilesPage> {
     return filtered;
   }
 
+  Widget _buildGenderChart(int males, int females) {
+    return PieChart(
+      PieChartData(
+        sections: [
+          PieChartSectionData(
+            value: males.toDouble(),
+            color: Colors.blue,
+            title: '$males',
+            radius: 40,
+          ),
+          PieChartSectionData(
+            value: females.toDouble(),
+            color: Colors.pink,
+            title: '$females',
+            radius: 40,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLegend(Color color, String text) {
+    return Row(
+      children: [
+        Container(
+          width: 16,
+          height: 16,
+          color: color,
+        ),
+        SizedBox(width: 8),
+        Text(text),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Browse Profiles')),
       body: Column(
         children: [
+          Consumer<ProfileManager>(
+            builder: (context, manager, _) {
+              final males =
+                  manager.profiles.where((p) => p.gender == 'Male').length;
+              final females =
+                  manager.profiles.where((p) => p.gender == 'Female').length;
+
+              return Container(
+                height: 200,
+                padding: EdgeInsets.all(16),
+                child: Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        Text('Gender Distribution',
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold)),
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Expanded(
+                                  child: _buildGenderChart(males, females)),
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  _buildLegend(Colors.blue, 'Male ($males)'),
+                                  SizedBox(height: 8),
+                                  _buildLegend(
+                                      Colors.pink, 'Female ($females)'),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+          SizedBox(height: 20),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextField(
@@ -1236,27 +1328,36 @@ class BrowseProfilesPageState extends State<BrowseProfilesPage> {
             child: Builder(
               builder: (context) {
                 final profileManager = Provider.of<ProfileManager>(context);
-                final filteredProfiles =
-                    _filterAndSortProfiles(profileManager.profiles);
-                print(
-                    "Filtered Profiles: ${filteredProfiles.length}"); // Log filtered profiles
+                final filteredProfiles = _filterAndSortProfiles(profileManager.profiles);
+                print("Filtered Profiles: ${filteredProfiles.length}"); // Log filtered profiles
 
                 return GridView.builder(
                   padding: const EdgeInsets.all(10),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
+                    crossAxisCount: 1, // Set to 1 for larger cards
                     crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                    childAspectRatio: 0.75,
+                    mainAxisSpacing: 15,
+                    childAspectRatio: 0.9, // Adjust height/width ratio to make cards bigger
                   ),
                   itemCount: filteredProfiles.length,
                   itemBuilder: (context, index) {
                     final profile = filteredProfiles[index];
                     return ProfileCard(
                       profile: profile,
-                      isFavorite: profileManager.isFavorite(profile),
-                      onFavoriteToggle: () {
+                      onTap: () {
+                        // Implement tap action
+                      },
+                      onEdit: () {
+                        // Implement edit action
+                      },
+                      onDelete: () {
+                        // Implement delete action
+                      },
+                      onToggleFavorite: () {
                         profileManager.toggleFavorite(profile);
+                      },
+                      onToggleOptap: () {
+                        // Implement optap toggle action
                       },
                     );
                   },
@@ -1283,25 +1384,36 @@ class FavoritesPage extends StatelessWidget {
       body: favorites.isEmpty
           ? const Center(child: Text('No favorites yet!'))
           : GridView.builder(
-              padding: const EdgeInsets.all(10),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-                childAspectRatio: 0.75,
-              ),
-              itemCount: favorites.length,
-              itemBuilder: (context, index) {
-                final profile = favorites[index];
-                return ProfileCard(
-                  profile: profile,
-                  isFavorite: profileManager.isFavorite(profile),
-                  onFavoriteToggle: () {
-                    profileManager.toggleFavorite(profile);
-                  },
-                );
-              },
-            ),
+        padding: const EdgeInsets.all(10),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 1, // Keep it as 2 for a 2-column layout
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+          childAspectRatio: 0.85, // Increase this to make cards taller
+        ),
+        itemCount: favorites.length,
+        itemBuilder: (context, index) {
+          final profile = favorites[index];
+          return ProfileCard(
+            profile: profile,
+            onTap: () {
+              // Implement tap action
+            },
+            onEdit: () {
+              // Implement edit action
+            },
+            onDelete: () {
+              // Implement delete action
+            },
+            onToggleFavorite: () {
+              profileManager.toggleFavorite(profile);
+            },
+            onToggleOptap: () {
+              // Implement optap toggle action
+            },
+          );
+        },
+      ),
     );
   }
 }
@@ -1436,193 +1548,108 @@ class AboutPage extends StatelessWidget {
 
 class ProfileCard extends StatelessWidget {
   final Profile profile;
-  final bool isFavorite;
-  final VoidCallback? onFavoriteToggle;
+  final VoidCallback onTap;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+  final VoidCallback onToggleFavorite;
+  final VoidCallback onToggleOptap;
 
   const ProfileCard({
+    Key? key,
     required this.profile,
-    required this.isFavorite,
-    this.onFavoriteToggle,
-    super.key,
-  });
-
-  String truncateName(String name, {int maxLength = 20}) {
-    final nameWithoutSpaces = name.replaceAll(' ', '');
-    if (nameWithoutSpaces.length <= maxLength) {
-      return name;
-    }
-
-    String truncatedName = '';
-    int charCount = 0;
-    for (var word in name.split(' ')) {
-      if (charCount + word.length > maxLength) {
-        break;
-      }
-      truncatedName += '$word ';
-      charCount += word.length;
-    }
-
-    return '${truncatedName.trim()}...';
-  }
+    required this.onTap,
+    required this.onEdit,
+    required this.onDelete,
+    required this.onToggleFavorite,
+    required this.onToggleOptap,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final truncatedName = truncateName(profile.name);
-
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ProfileDetailPage(profile: profile),
-          ),
-        );
-      },
-      child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        elevation: 5,
-        child: Column(
-          mainAxisSize: MainAxisSize.min, // Prevents unnecessary expansion
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(15)),
-              child: profile.imageUrl.isNotEmpty
-                  ? Image.network(
-                      // Use Image.network for URL
-                      profile.imageUrl,
-                      width: double.infinity,
-                      height: 100,
-                      fit: BoxFit.cover,
-                    )
-                  : Container(
-                      width: double.infinity,
-                      height: 100,
-                      color: Colors.grey.shade300,
-                      child: const Icon(Icons.person,
-                          size: 60, color: Colors.grey),
-                    ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
+    return Card(
+      elevation: 4,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  Text(
-                    truncatedName,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
+                  CircleAvatar(
+                    radius: 30,
+                    backgroundImage: profile.imageUrl.isNotEmpty
+                        ? NetworkImage(profile.imageUrl)
+                        : null,
+                    child: profile.imageUrl.isEmpty
+                        ? const Icon(Icons.person, size: 30)
+                        : null,
                   ),
-                  Text(
-                    '${profile.age} | ${profile.location}',
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          profile.name,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          profile.email,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      Expanded(
-                        child: IconButton(
-                          icon: Icon(
-                            isFavorite ? Icons.favorite : Icons.favorite_border,
-                            color: isFavorite ? Colors.red : null,
-                          ),
-                          onPressed: onFavoriteToggle,
+                      IconButton(
+                        icon: Icon(
+                          profile.isFavorite
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          color: profile.isFavorite ? Colors.red : null,
                         ),
+                        onPressed: onToggleFavorite,
                       ),
-                      Expanded(
-                        child: IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    EditProfilePage(profile: profile),
-                              ),
-                            );
-                          },
+                      IconButton(
+                        icon: Icon(
+                          profile.isOptap
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          color: profile.isOptap ? Colors.blue : Colors.grey,
                         ),
-                      ),
-                      Expanded(
-                        child: IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (context) {
-                                return AlertDialog(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15),
-                                  ),
-                                  title: Text(
-                                    "Delete Profile?",
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.redAccent,
-                                    ),
-                                  ),
-                                  content: Text(
-                                    "Are you sure you want to delete this profile? This action cannot be undone.",
-                                    style: GoogleFonts.poppins(
-                                        fontSize: 16, color: Colors.black87),
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      child: Text(
-                                        "Cancel",
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.grey.shade700,
-                                        ),
-                                      ),
-                                    ),
-                                    ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Theme.of(context)
-                                            .colorScheme
-                                            .primary,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                        ),
-                                      ),
-                                      onPressed: () {
-                                        Provider.of<ProfileManager>(context,
-                                                listen: false)
-                                            .deleteProfile(
-                                                profile.id.toString());
-                                        Navigator.pop(context); // Close dialog
-                                      },
-                                      child: Text(
-                                        "Delete",
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          },
-                        ),
+                        onPressed: onToggleOptap,
                       ),
                     ],
-                  )
+                  ),
                 ],
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit),
+                    onPressed: onEdit,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete),
+                    onPressed: onDelete,
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1878,48 +1905,86 @@ mixin ProfileValidationMixin {
 }
 
 class ProfileManager extends ChangeNotifier {
-  final List<Profile> _profiles = [];
-  final List<Profile> _favorites = [];
   final ApiService _apiService = ApiService();
+  List<Profile> _profiles = [];
+  List<Profile> _favorites = [];
+  bool _isLoading = false;
 
-  List<Profile> get profiles => List.unmodifiable(_profiles);
-
-  List<Profile> get favorites => List.unmodifiable(_favorites);
+  List<Profile> get profiles => _profiles;
+  List<Profile> get favorites => _favorites;
+  bool get isLoading => _isLoading;
 
   ProfileManager() {
     _loadProfiles();
   }
 
   Future<void> _loadProfiles() async {
-    _profiles.clear();
-    final profiles = await _apiService.getProfiles();
-    print("Profiles Loaded: ${profiles.length}");
-    _profiles.addAll(profiles);
+    _isLoading = true;
     notifyListeners();
+
+    try {
+      _profiles = await _apiService.getProfiles();
+      _favorites = await _apiService.getFavorites();
+    } catch (e) {
+      print('Error loading profiles: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> addProfile(Profile profile) async {
-    await _apiService.addProfile(profile);
-    _loadProfiles();
+    try {
+      await _apiService.addProfile(profile);
+      await _loadProfiles();
+    } catch (e) {
+      print('Error adding profile: $e');
+      rethrow;
+    }
   }
 
   Future<void> updateProfile(Profile oldProfile, Profile newProfile) async {
-    await _apiService.updateProfile(newProfile);
-    _loadProfiles();
+    try {
+      await _apiService.updateProfile(newProfile);
+      await _loadProfiles();
+    } catch (e) {
+      print('Error updating profile: $e');
+      rethrow;
+    }
   }
 
   Future<void> deleteProfile(String id) async {
-    await _apiService.deleteProfile(id);
-    _loadProfiles();
-  }
-
-  bool isFavorite(Profile profile) {
-    return _profiles.firstWhere((p) => p.id == profile.id).isFavorite;
+    try {
+      await _apiService.deleteProfile(id);
+      await _loadProfiles();
+    } catch (e) {
+      print('Error deleting profile: $e');
+      rethrow;
+    }
   }
 
   Future<void> toggleFavorite(Profile profile) async {
-    await _apiService.toggleFavorite(profile);
-    _loadProfiles();
+    try {
+      await _apiService.toggleFavorite(profile);
+      await _loadProfiles();
+    } catch (e) {
+      print('Error toggling favorite: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> toggleOptap(Profile profile) async {
+    try {
+      await _apiService.toggleOptap(profile);
+      await _loadProfiles();
+    } catch (e) {
+      print('Error toggling optap: $e');
+      rethrow;
+    }
+  }
+
+  bool isFavorite(Profile profile) {
+    return _favorites.any((p) => p.email == profile.email);
   }
 }
 
@@ -1932,5 +1997,163 @@ class AlphabeticInputFormatter extends TextInputFormatter {
       return newValue;
     }
     return oldValue;
+  }
+}
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: const HomeScreenContent(),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AddProfilePage()),
+          );
+        },
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+}
+
+class UserProfilePage extends StatelessWidget {
+  const UserProfilePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final user = Auth().currentUser;
+    
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('My Profile'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () {
+              // TODO: Implement edit profile functionality
+            },
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Stack(
+                children: [
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundImage: NetworkImage(
+                      user?.photoURL ?? 'https://via.placeholder.com/150',
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: CircleAvatar(
+                      backgroundColor: Theme.of(context).primaryColor,
+                      radius: 18,
+                      child: IconButton(
+                        icon: const Icon(Icons.camera_alt, size: 18),
+                        onPressed: () {
+                          // TODO: Implement profile picture change
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            _buildProfileSection(
+              'Personal Information',
+              [
+                _buildInfoRow('Name', user?.displayName ?? 'Not set'),
+                _buildInfoRow('Email', user?.email ?? 'Not set'),
+                _buildInfoRow('Phone', user?.phoneNumber ?? 'Not set'),
+              ],
+            ),
+            const SizedBox(height: 24),
+            _buildProfileSection(
+              'Account Settings',
+              [
+                ListTile(
+                  leading: const Icon(Icons.lock),
+                  title: const Text('Change Password'),
+                  trailing: const Icon(Icons.arrow_forward_ios),
+                  onTap: () {
+                    // TODO: Implement password change
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.notifications),
+                  title: const Text('Notifications'),
+                  trailing: const Icon(Icons.arrow_forward_ios),
+                  onTap: () {
+                    // TODO: Implement notification settings
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.privacy_tip),
+                  title: const Text('Privacy Settings'),
+                  trailing: const Icon(Icons.arrow_forward_ios),
+                  onTap: () {
+                    // TODO: Implement privacy settings
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileSection(String title, List<Widget> children) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 16),
+        ...children,
+      ],
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 16,
+              color: Colors.grey,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

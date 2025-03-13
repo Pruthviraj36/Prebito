@@ -65,7 +65,7 @@
 
 
 class Profile {
-  final String? id; // Changed from int? to String?
+  final String? id;
   final String name;
   final String email;
   final String mobileNumber;
@@ -77,9 +77,10 @@ class Profile {
   final String dateOfBirth;
   bool isFavorite;
   final String password;
+  bool isOptap;
 
   Profile({
-    this.id, // Now a String
+    this.id,
     required this.name,
     required this.email,
     required this.mobileNumber,
@@ -91,11 +92,12 @@ class Profile {
     required this.dateOfBirth,
     this.isFavorite = false,
     required this.password,
+    this.isOptap = true,
   });
 
   factory Profile.fromJson(Map<String, dynamic> json) {
     return Profile(
-      id: json['id']?.toString(), // Ensure id is always a string
+      id: json['id']?.toString(),
       name: json['name'],
       email: json['email'],
       mobileNumber: json['mobileNumber'].toString(),
@@ -106,15 +108,16 @@ class Profile {
       imageUrl: json['imageUrl'].toString(),
       dateOfBirth: json['dateOfBirth'].toString(),
       isFavorite: json['isFavorite'] is int
-          ? json['isFavorite'] == 1 // Convert int to bool
-          : json['isFavorite'] ?? false, // Default to false if null
+          ? json['isFavorite'] == 1
+          : json['isFavorite'] ?? false,
       password: json['password'].toString(),
+      isOptap: json['isOptap'] ?? true,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id, // Now a string
+      'id': id,
       'name': name,
       'email': email,
       'mobileNumber': mobileNumber,
@@ -124,8 +127,9 @@ class Profile {
       'hobbies': hobbies,
       'imageUrl': imageUrl,
       'dateOfBirth': dateOfBirth,
-      'isFavorite': isFavorite, // Ensure isFavorite is a boolean
+      'isFavorite': isFavorite,
       'password': password,
+      'isOptap': isOptap,
     };
   }
 }
